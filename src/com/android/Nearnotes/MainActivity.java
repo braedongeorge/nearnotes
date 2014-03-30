@@ -355,8 +355,8 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	            	 invalidateOptionsMenu();
 	            	// Create fragment and give it an argument specifying the article it should show
 	 	    		
-	            	 NoteLocation nLoc = new NoteLocation(this);
-	         		 double[] locations = nLoc.getLocation();
+	            	 //NoteLocation nLoc = new NoteLocation(this);
+	         		 double[] locations = mLoc.getLocation();
 	         		 mLatitude = locations[0];
 	         		 mLongitude = locations[1];
 	         		 String accuracy = String.valueOf(Math.round(locations[2]));
