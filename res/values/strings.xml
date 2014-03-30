@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NearNotes</string>
+    <string name="no_notes">No Notes Yet</string>
+    <string name="menu_insert">Add Note</string>
+    <string name="menu_delete">Delete Note</string>
+    <string name="titles">Title:</string>
+     <string name="title">NearNotes</string>
+    <string name="body">Notes:</string>
+    <string name="confirm">Confirm</string>
+    <string name="blank"></string>
+    <string name="done">DONE</string>
+    <string name="spacer">&#160;-&#160;</string>
+    <string name="edit_note">NearNotes</string>
+    <string name="location">Location:</string>
+    <string-array name="menu_array">
+        <item>Nearest Note</item>
+        <item>All Notes</item>
+        <item>Settings</item>
+        <item>Help</item>
+    </string-array>
+     <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <color name="actionbar_text">#FFF</color>
+</resources>

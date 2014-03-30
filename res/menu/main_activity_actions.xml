@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item android:id="@+id/action_location"
+          android:icon="@drawable/ic_action_refresh"
+           android:title="@string/blank"
+          android:showAsAction="always|withText"/>
+    <item android:id="@+id/action_new"
+          android:icon="@drawable/ic_action_new" 
+          android:showAsAction="always"/>
+    <item android:id="@+id/action_done"
+          android:title="@string/done"
+          android:showAsAction="always"/>
+    
+
+
+    
+
+</menu>
+
+    
+   
