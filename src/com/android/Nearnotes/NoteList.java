@@ -15,7 +15,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
-public class Notepadv3 extends ListFragment {
+public class NoteList extends ListFragment {
     private static final int DELETE_ID = Menu.FIRST + 1;
     private NotesDbAdapter mDbHelper;
     OnNoteSelectedListener mCallback;

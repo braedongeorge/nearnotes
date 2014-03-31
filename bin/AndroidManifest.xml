@@ -16,7 +16,7 @@
             </intent-filter>
         </activity>
      	<activity android:name=".NoteEdit"/>
-     	<activity android:name=".Notepadv3"/>
+     	<activity android:name=".NoteList"/>
         
     </application>
 </manifest> 

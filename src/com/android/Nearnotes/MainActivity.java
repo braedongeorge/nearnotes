@@ -30,7 +30,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 
-public class MainActivity extends FragmentActivity implements LocationListener, Notepadv3.OnNoteSelectedListener, NoteEdit.noteEditListener {
+public class MainActivity extends FragmentActivity implements LocationListener, NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener {
 	  private NotesDbAdapter mDbHelper;
 	  private static final int ACTIVITY_EDIT=1;
 	  private int mFragType=0;
@@ -201,7 +201,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	    	if (position == 1) {
 	    		mFragType = 2;
 	    	
-	    		Notepadv3 newFragment = new Notepadv3();
+	    		NoteList newFragment = new NoteList();
 	    		
 	    		Bundle args = new Bundle();
 	    		args.putDouble("latitude", mLatitude);
@@ -330,7 +330,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	            	 noteFrag.saveState(); 
 	            	 invalidateOptionsMenu();
 	            	 
-	            	 Notepadv3 newFragment = new Notepadv3();
+	            	 NoteList newFragment = new NoteList();
 	 	    		
 	 	    		Bundle args1 = new Bundle();
 	 	    		args1.putDouble("latitude", mLatitude);
@@ -361,7 +361,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	         		 mLongitude = locations[1];
 	         		 String accuracy = String.valueOf(Math.round(locations[2]));
 	         		 Toast.makeText(this, "Location accurate to " + accuracy + " metres.", Toast.LENGTH_SHORT).show();  
-	         		 Notepadv3 articleFrag = (Notepadv3) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+	         		 NoteList articleFrag = (NoteList) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 
 	                 if (articleFrag != null) {
 	                	 Log.e("filling","filling data");

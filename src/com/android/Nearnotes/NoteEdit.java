@@ -48,7 +48,7 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.Toast;
 import com.android.Nearnotes.R;
-import com.android.Nearnotes.Notepadv3.OnNoteSelectedListener;
+import com.android.Nearnotes.NoteList.OnNoteSelectedListener;
 
 public class NoteEdit extends Fragment implements OnItemClickListener {
 	private static final String LOG_TAG = "ExampleApp";
