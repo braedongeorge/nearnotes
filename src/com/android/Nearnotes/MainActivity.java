@@ -1,16 +1,13 @@
 package com.android.Nearnotes;
 
-
-
-
-
 import android.app.ActionBar.LayoutParams;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -24,28 +21,28 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
 
-public class MainActivity extends FragmentActivity implements LocationListener, NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener {
-	  private NotesDbAdapter mDbHelper;
-	  private static final int ACTIVITY_EDIT=1;
-	  private int mFragType=0;
+public class MainActivity extends FragmentActivity implements NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener, NoteLocation.NoteLocationListener {
+	  // Set class objects
+	  public NotesDbAdapter mDbHelper;
 	  private DrawerLayout mDrawerLayout;
 	  private ListView mDrawerList;
 	  private ActionBarDrawerToggle mDrawerToggle;
-	  private Menu mMenu;
 	  private NoteLocation mLoc;
-	  private Location mLocation;
-	  private double mLatitude;
-	  private double mLongitude;
-
+	
+	  
+	  // Set simple variables
 	  private CharSequence mDrawerTitle;
 	  private CharSequence mTitle;
 	  private String[] mMenuTitles;
+	  private double mLatitude;
+	  private double mAccuracy;
+	  private double mLongitude;
+	  private int mFragType=0;
+	  private boolean mOnlyOrientation = false;
 
 	 @Override
 	  public void onCreate(Bundle savedInstanceState) {
@@ -54,18 +51,14 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	   
 	    mDbHelper = new NotesDbAdapter(this);  // Create new custom database class for sqlite and pass the current context as a variable
         mDbHelper.open(); // Gets the writable database
-        mLoc = new NoteLocation(this);
-        double[] locations = mLoc.getLocation();
-        mLatitude = locations[0];
-        mLongitude = locations[1];
+        // mLoc = new NoteLocation(this);
+        // double[] locations = mLoc.getLocation();
+        //showDialogs(1);
+        
        
         // enable ActionBar app icon to behave as action to toggle nav drawer
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
-        // getActionBar().setIcon(android.R.color.transparent);
-    
-        
-             
         getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.ab_gradient));
         
         
@@ -75,7 +68,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
         getActionBar().setCustomView(customNav, lp);
         getActionBar().setDisplayShowCustomEnabled(true);
         
-	 // START NAV DRAWER
+        // START NAV DRAWER
         mTitle = mDrawerTitle = getTitle();
         mMenuTitles = getResources().getStringArray(R.array.menu_array);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -114,7 +107,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         if (savedInstanceState == null) {
-            selectItem(0);
+           // selectItem(0);
         }
 	    
 	    
@@ -126,30 +119,15 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
             if (savedInstanceState != null) {
                 return;
             }
-            
-            Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);	
-            notesCursor.moveToFirst();
-            // Create a new Fragment to be placed in the activity layout
-            NoteEdit firstFragment = new NoteEdit();
-            Bundle args = new Bundle();
-            args.putLong(NotesDbAdapter.KEY_ROWID, notesCursor.getLong(0));
-            firstFragment.setArguments(args);
-            // In case this activity was started with special instructions from an
-            // Intent, pass the Intent's extras to the fragment as arguments
-            
-            // firstFragment.setArguments(getIntent().getExtras());
-            
-            // Add the fragment to the 'fragment_container' FrameLayout
-             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, firstFragment).commit();
-        }
+           
+               }
 
 	 }
 		
 	 public void setActionItems() {
 		 getActionBar().setDisplayShowCustomEnabled(false);
-	   //  mDrawerList.setItemChecked(1, true);
-		mFragType = 2;
+	  	mFragType = 2;
+		setTitle("All Notes");
      	invalidateOptionsMenu();
 		 
 	    }
@@ -157,86 +135,132 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	 public void setEditItems() {
 		 mFragType = 1; 
 		 getActionBar().setDisplayShowCustomEnabled(true);
-		//  mDrawerList.setItemChecked(0, true);
+		setTitle("Edit Note");
 		 invalidateOptionsMenu();
 		 
 	 }
 	 
 	 
 	 public void onNoteSelected(long id) {
-	        // The user selected the headline of an article from the HeadlinesFragment
-	        // Do something here to display that article
-		 NoteEdit newFragment = new NoteEdit();
+		NoteEdit newFragment = new NoteEdit();
  		
-		 mFragType = 0;
  		Bundle args = new Bundle();
  		args.putLong("_id", id);
  		newFragment.setArguments(args);
 
  		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
- 		// Replace whatever is in the fragment_container view with this fragment,
- 		// and add the transaction to the back stack so the user can navigate back
- 		transaction.replace(R.id.fragment_container, newFragment);
+  		transaction.replace(R.id.fragment_container, newFragment);
  		transaction.addToBackStack(null);
-
- 		// Commit the transaction
  		transaction.commit();;
 		 
 		 
 	    }
 	 
+	 public Location onLocationFound(Location location, int TypeFrag) {
+		 mLatitude = location.getLatitude();
+	     mLongitude = location.getLongitude();
+	     mAccuracy = location.getAccuracy();
+		 mLoc.dismiss();
+		 if (TypeFrag == 2) {
+			 fetchAllNotes();
+			 
+		 } else if (TypeFrag == 1) {
+			 fetchFirstNote();
+			 
+		 }
+		 return location;
+	 }
+	 
+	 public void showDialogs(int TypeFrag) {
+		    // Create the fragment and show it as a dialog.
+		    mLoc = new NoteLocation();
+		    Bundle args = new Bundle();
+		    args.putInt("TypeFrag", TypeFrag);
+		    mLoc.setArguments(args);
+		    mLoc.show(getSupportFragmentManager(), "dialog");
+		}
 	 
 	    /* The click listener for ListView in the navigation drawer */
 	    private class DrawerItemClickListener implements ListView.OnItemClickListener {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-	        	Log.e("testers","getting to onItemClick");
-	            selectItem(position);
+	        	selectItem(position);
 	        }
 	    }
 
 	    private void selectItem(int position) {
-	    	Log.e("drawer",String.valueOf(position));
 	    	if (position == 1) {
-	    		mFragType = 2;
-	    	
-	    		NoteList newFragment = new NoteList();
 	    		
-	    		Bundle args = new Bundle();
-	    		args.putDouble("latitude", mLatitude);
-	    		args.putDouble("longitude", mLongitude);
-	    		newFragment.setArguments(args);
-
-	    		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+	    		fetchAllNotes();
 	    		
-	    		transaction.replace(R.id.fragment_container, newFragment);
-	    		transaction.addToBackStack(null);
-	    		transaction.commit();;
 	    	} else if (position == 0) {
-	    		mFragType = 1;
-			
-	    		NoteEdit newFragment1 = new NoteEdit();
-	
-	    		Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);	
-	            notesCursor.moveToFirst();
-	           	              
-	            Bundle args = new Bundle();
-	            args.putLong(NotesDbAdapter.KEY_ROWID, notesCursor.getLong(0));
-	            newFragment1.setArguments(args);    		
-
-	    		FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
-
-	    		transaction1.replace(R.id.fragment_container, newFragment1);
-	    		transaction1.addToBackStack(null);
-	    		transaction1.commit();;
+	    		showDialogs(1);
+	    		//if (fetchFirstNote()) {
+	    		//
+	    		//}    	              
+	           
 	    	}
 	       
 			
 	        // update selected item and title, then close the drawer
 	        mDrawerList.setItemChecked(position, false);
-	        setTitle(mMenuTitles[position]);
+	       //setTitle(mMenuTitles[position]);
 	        mDrawerLayout.closeDrawer(mDrawerList);
+	    }
+	    
+	    
+	    public void replaceFragment(Fragment newFragment, Bundle bundle) {
+            
+           newFragment.setArguments(bundle);    		
+
+    		FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
+
+    		transaction1.replace(R.id.fragment_container, newFragment);
+    		transaction1.addToBackStack(null);
+    		transaction1.commit();;
+    		
+	    	
+	    	
+	    	
+	    }
+	    
+	    
+	    public boolean fetchFirstNote() {
+	    	
+    		Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);	
+    		if (notesCursor.getCount() > 0) {
+    			
+    			notesCursor.moveToFirst();
+    			NoteEdit newFragment1 = new NoteEdit();
+	    		       
+ 	            Bundle newBundle = new Bundle();
+	            newBundle.putLong(NotesDbAdapter.KEY_ROWID, notesCursor.getLong(0));
+	            replaceFragment(newFragment1, newBundle);
+	            
+	            return true;
+    		} else {
+    			Toast.makeText(this, "No Notes Yet", Toast.LENGTH_SHORT).show();   
+    			return false;
+    		}
+    			
+    		
+    		
+	    }
+	    
+	    
+	    public void fetchAllNotes() {
+	    		    	
+	    	NoteList newFragment = new NoteList();
+    		
+    		Bundle args = new Bundle();
+    		args.putDouble("latitude", mLatitude);
+    		args.putDouble("longitude", mLongitude);
+    		
+    		replaceFragment(newFragment, args);
+    		
+    		
+    			
 	    }
 	 
 	    @Override
@@ -275,7 +299,16 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 
 	    @Override
 	    public void onConfigurationChanged(Configuration newConfig) {
-	        super.onConfigurationChanged(newConfig);
+	    	super.onConfigurationChanged(newConfig);
+	    	if(newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE){
+
+	            mOnlyOrientation = true;
+	        }else{
+	        	mOnlyOrientation = true;	
+	            Log.e("On Config Change","PORTRAIT");
+	        }
+	        
+	        
 	        // Pass any configuration change to the drawer toggls
 	        mDrawerToggle.onConfigurationChanged(newConfig);
 	    }
@@ -287,10 +320,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	        MenuInflater inflater = getMenuInflater();
 	        inflater.inflate(R.menu.main_activity_actions, menu);
 	        
-	       
-	        
 	        return true;	
-	    	
 	    }
 	    
 	    @Override
@@ -304,7 +334,7 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	       // Handle presses on the action bar items
 	        switch (item.getItemId()) {
 	             case R.id.action_new:
-	            	 mFragType = 1;
+	            	
 	            	 invalidateOptionsMenu();
 	            	
 	 	    		NoteEdit newFragment1 = new NoteEdit();
@@ -323,52 +353,18 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	 	    		transaction1.commit();;
 	                return true;
 	             case R.id.action_done:   
-	            	 mFragType = 2;
-	            	 
-	            	 NoteEdit noteFrag = (NoteEdit)
-	            		     getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+	            	 NoteEdit noteFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 	            	 noteFrag.saveState(); 
 	            	 invalidateOptionsMenu();
 	            	 
-	            	 NoteList newFragment = new NoteList();
-	 	    		
-	 	    		Bundle args1 = new Bundle();
-	 	    		args1.putDouble("latitude", mLatitude);
-	 	    		args1.putDouble("longitude", mLongitude);
-	 	    		newFragment.setArguments(args1);
-
-	 	    		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-	 	    		// Replace whatever is in the fragment_container view with this fragment,
-	 	    		// and add the transaction to the back stack so the user can navigate back
-	 	    		transaction.hide(getSupportFragmentManager().findFragmentById(R.id.fragment_container));
-	 	    		transaction.replace(R.id.fragment_container, newFragment);
-	 	    		transaction.addToBackStack(null);
-	 	    		
-
-	 	    		// Commit the transaction
-	 	    		transaction.commit();;
+	            	 fetchAllNotes();
+	            	 
 	               return true;
 	                
 	             case R.id.action_location:
-	            	
-	            	 invalidateOptionsMenu();
-	            	// Create fragment and give it an argument specifying the article it should show
-	 	    		
-	            	 //NoteLocation nLoc = new NoteLocation(this);
-	         		 double[] locations = mLoc.getLocation();
-	         		 mLatitude = locations[0];
-	         		 mLongitude = locations[1];
-	         		 String accuracy = String.valueOf(Math.round(locations[2]));
-	         		 Toast.makeText(this, "Location accurate to " + accuracy + " metres.", Toast.LENGTH_SHORT).show();  
-	         		 NoteList articleFrag = (NoteList) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-
-	                 if (articleFrag != null) {
-	                	 Log.e("filling","filling data");
-	                     articleFrag.fillData(mLongitude, mLatitude);
-	                 } 
-
-	            	 
+ 	
+	            	showDialogs(2);
+	            
 	                return true;   
 	            default:
 	                return super.onOptionsItemSelected(item);
@@ -377,46 +373,19 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	           
 	    }
 	    
-	    
-	    @Override
-		  public void onLocationChanged(Location location) {
-		 
-		  }
 
-		  @Override
-		  public void onStatusChanged(String provider, int status, Bundle extras) {
-		    // TODO Auto-generated method stub
-
-		  }
-
-		  @Override
-		  public void onProviderEnabled(String provider) {
-		    
-			 Toast.makeText(this, "Enabled new provider " + provider,
-		        Toast.LENGTH_SHORT).show();
-
-		  }
-
-		  @Override
-		  public void onProviderDisabled(String provider) {
-		    Toast.makeText(this, "Disabled provider " + provider,
-		        Toast.LENGTH_SHORT).show();
-		  }
-		  
-		  
-		  @Override
-			public void onPause() {
-		    	super.onPause();
-		    	
-		    	mLoc.locationManager.removeUpdates(this);
-		    	
-		    }
+		
 		    
 		    @Override
 			public void onResume() {
 		    	super.onResume();
-		    	
+	
+		    	if (!mOnlyOrientation) {
+		    	showDialogs(1);
+		    		    		
+		    	} else mOnlyOrientation = false;
 		    	
 		    }
-	    
+		    
+
 }

@@ -363,6 +363,15 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
     @Override
 	public void onResume() {
     	super.onResume();
+    	mCallback.setEditItems();
+		if (mRowId == null) {
+			Bundle extras = getArguments();
+			if (!extras.containsKey(NotesDbAdapter.KEY_ROWID)) {
+				mTitleText.setText("");
+			}
+			mRowId = extras.containsKey(NotesDbAdapter.KEY_ROWID) ? extras.getLong(NotesDbAdapter.KEY_ROWID)
+     								: null;
+		}    
     	populateFields();
     }
     

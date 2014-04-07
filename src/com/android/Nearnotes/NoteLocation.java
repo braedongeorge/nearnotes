@@ -1,5 +1,6 @@
 package com.android.Nearnotes;
 
+import android.app.Activity;
 import android.content.Context;
 import android.location.Criteria;
 import android.location.GpsStatus;
@@ -7,37 +8,76 @@ import android.location.GpsStatus.Listener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
-public class NoteLocation implements LocationListener {
-		Context mContext;
-		LocationListener mListener;
+public class NoteLocation extends DialogFragment implements LocationListener {
+		// LocationListener mListener;
+		NoteLocationListener mCallback;
 		public LocationManager locationManager;
 		private String provider;
 		private boolean mGpsFix;
 		private Location mfinalLocation;
+		private boolean mSkip = false;
+		private int mTypeFrag;
 		
-
-		
-		public NoteLocation(Context mContext) {
-			this.mContext = mContext;
-			this.mListener = this;
-		
+		public NoteLocation() {
+			// Empty Constructor required for DialogFragment
 		}
 		
+		public interface NoteLocationListener {
+	        public Location onLocationFound(Location location, int TypeFrag);
+	    }
+
+	    @Override
+	    public void onAttach(Activity activity) {
+	        super.onAttach(activity);
+	        
+	        // This makes sure that the container activity has implemented
+	        // the callback interface. If not, it throws an exception
+	        try {
+	            mCallback = (NoteLocationListener) activity;
+	        } catch (ClassCastException e) {
+	            throw new ClassCastException(activity.toString()
+	                    + " must implement NoteLocationListener");
+	        }
+	    }
 		
 		
-		public GpsStatus.Listener mGPSStatusListener = new GpsStatus.Listener()
+		
+		
+		
+		
+		
+		
+		
+	  @Override
+	   public View onCreateView(LayoutInflater inflater, ViewGroup container,
+		            Bundle savedInstanceState) {
+		        View view = inflater.inflate(R.layout.dialogue_location, container);
+		        getDialog().setTitle("Finding Nearest Note...");
+
+		        return view;
+		    }
+		
+		
+	  /*
+	  public GpsStatus.Listener mGPSStatusListener = new GpsStatus.Listener()
 		{    
 		    public void onGpsStatusChanged(int event) 
 		    {       
 		        switch(event) 
 		        {
 		            case GpsStatus.GPS_EVENT_STARTED:
-		                Toast.makeText(mContext, "Waiting on GPS Lock", Toast.LENGTH_SHORT).show();
-		                
+		                Toast.makeText(getActivity(), "Waiting on GPS Lock", Toast.LENGTH_SHORT).show();
+		             
 		                System.out.println("TAG - GPS searching: ");                        
 		                 mGpsFix = false;
 		                break;
@@ -48,12 +88,12 @@ public class NoteLocation implements LocationListener {
 		            case GpsStatus.GPS_EVENT_FIRST_FIX:
 		            	mGpsFix = true;
 		            	
+		            	//mCallback.onLocationFound(location);
+		            	
 		            		
-		                /*
-		                 * GPS_EVENT_FIRST_FIX Event is called when GPS is locked            
-		                 */
+		              
 		            		
-		                    Toast.makeText(mContext, "GPS_LOCKED", Toast.LENGTH_SHORT).show();
+		                    Toast.makeText(getActivity(), "GPS_LOCKED", Toast.LENGTH_SHORT).show();
 		                    Location gpslocation = locationManager
 		                            .getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		                    if (isBetterLocation(gpslocation, mfinalLocation)) {
@@ -65,10 +105,9 @@ public class NoteLocation implements LocationListener {
 		                    {       
 		                    System.out.println("GPS Info:"+gpslocation.getLatitude()+":"+gpslocation.getLongitude());
 
-		                    /*
-		                     * Removing the GPS status listener once GPS is locked  
-		                     */
-		                    //    locationManager.removeGpsStatusListener(mGPSStatusListener);                
+		                    //locationManager.removeUpdates(mListener);
+		                   //  locationManager.removeGpsStatusListener(mGPSStatusListener);   
+		                   
 		                    }               
 
 		                break;
@@ -78,64 +117,27 @@ public class NoteLocation implements LocationListener {
 		       }
 		   }
 		};  
+	*/
 		
-
-		public double[] getLocation() {
-			Toast.makeText(mContext, "mgpsfix is " + String.valueOf(mGpsFix), Toast.LENGTH_SHORT).show();
-			locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+		@Override
+		public void onStart() {
+			super.onStart();
+			
+			Bundle extras = getArguments();
+			mTypeFrag = extras.getInt("TypeFrag");
+			
+			locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
 		    Criteria criteria = new Criteria();
 		  
 		    provider = locationManager.getBestProvider(criteria, true);
-		    locationManager.addGpsStatusListener(mGPSStatusListener);
+		   
 		    
-		    if (provider.matches("gps") && !mGpsFix) {
-		    	Toast.makeText(mContext, "no gps fix and gps location", Toast.LENGTH_SHORT).show();
-		    	locationManager.requestLocationUpdates(provider, 0, 0, mListener);
-		    	provider = "network"; 
-		    	
-		    } else if (provider.matches("gps") && mGpsFix) {
-		    	Toast.makeText(mContext, "gps fix and gps location", Toast.LENGTH_SHORT).show();
-		    	provider = "gps"; 
-		    	
-		    	
-		    	
-		    }
-		  
-	                   
-		    locationManager.requestLocationUpdates(provider, 0, 0, mListener);
-		    Location location = locationManager.getLastKnownLocation(provider);
-
-
-		    if (location != null) {
-		    	if (!isBetterLocation(location, mfinalLocation)) {
-		    		Toast.makeText(mContext, "not a better location", Toast.LENGTH_SHORT).show();
-		    		location = mfinalLocation;	
-		    	} 
-		    } else {
-		    	while (location == null) {
-		    	System.out.println("No last known location.");
-		    	locationManager.requestLocationUpdates(provider, 1000, 0, mListener);
-		    	location = locationManager.getLastKnownLocation(provider);
-		    	
-		    	// locationManager.addGpsStatusListener(listener)
-		    	
-		    	}
-		    	if (!isBetterLocation(location, mfinalLocation)) {
-		    		location = mfinalLocation;	
-		    	} 
-		    }
-		    
-		    mfinalLocation = location;
-		    Toast.makeText(mContext, "provider" + mfinalLocation.getProvider(), Toast.LENGTH_SHORT).show();
-		    return new double[] {mfinalLocation.getLatitude(), mfinalLocation.getLongitude(), mfinalLocation.getAccuracy()};
+		    locationManager.requestLocationUpdates(provider, 200, 0, this);
+			
+			
 		}
 		
-	  
-	  
-		
-		
-		
-		
+	
 		private static final int TWO_MINUTES = 1000 * 60 * 2;
 
 		/** Determines whether one Location reading is better than the current Location fix
@@ -200,13 +202,14 @@ public class NoteLocation implements LocationListener {
 		
 	  @Override
 	  public void onLocationChanged(Location location) {
-		  Log.e("test", String.valueOf(location.getAccuracy()));
-	    // double lat = (double) (location.getLatitude());
-	   // double lng = (double) (location.getLongitude());
+		mCallback.onLocationFound(location, mTypeFrag);
+		 locationManager.removeUpdates(this);
+	  
 	  }
 
 	  
 	  @Override
+	  
 	  public void onStatusChanged(String provider, int status, Bundle extras) {
 	    
 	  }
@@ -214,14 +217,42 @@ public class NoteLocation implements LocationListener {
 	  
 	  @Override
 	  public void onProviderEnabled(String provider) {
-	    Toast.makeText(mContext, "Enabled new provider " + provider,
+	    Toast.makeText(getActivity(), "Enabled new provider " + provider,
 	        Toast.LENGTH_SHORT).show();
+	    
+	    Criteria criteria = new Criteria();
+		  
+	    provider = locationManager.getBestProvider(criteria, true);
+	   
+	    
+	    locationManager.requestLocationUpdates(provider, 0, 0, this);
+	    
 	  }
 
 	  
 	  @Override
 	  public void onProviderDisabled(String provider) {
-	    Toast.makeText(mContext, "Disabled provider " + provider,
+	    Toast.makeText(getActivity(), "Disabled provider " + provider,
 	        Toast.LENGTH_SHORT).show();
+	    Criteria criteria = new Criteria();
+		  
+	    provider = locationManager.getBestProvider(criteria, true);
+	   
+	    
+	    locationManager.requestLocationUpdates(provider, 0, 0, this);
+	  }
+	  
+	  @Override
+	  public void onPause() {
+		  super.onPause();
+	    	
+		  locationManager.removeUpdates(this);
+	  }
+	  
+	  @Override
+		public void onResume() {
+		  super.onResume();
+			
+		  
 	  }
 }
