@@ -5,7 +5,7 @@
     <string name="menu_insert">Add Note</string>
     <string name="menu_delete">Delete Note</string>
     <string name="titles">Title:</string>
-     <string name="title">NearNotes</string>
+    <string name="title">NearNotes</string>
     <string name="body">Notes:</string>
     <string name="confirm">Confirm</string>
     <string name="blank"></string>
@@ -13,7 +13,12 @@
     <string name="spacer">&#160;-&#160;</string>
     <string name="edit_note">NearNotes</string>
     <string name="location">Location:</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="pref_location_title">Location Settings</string>
+    <string name="dialog_network_location">Use network location</string>
     <string name="find_note">Finding Nearest Note....</string>
+    <string name="pref_summary_ignore_gps">Always ignore GPS when finding location even if enabled</string>
+    <string name="pref_title_ignore_gps">Ignore GPS</string>
     <string-array name="menu_array">
         <item>Nearest Note</item>
         <item>All Notes</item>
@@ -23,4 +28,7 @@
      <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <color name="actionbar_text">#FFF</color>
+    <color name="backgroundDefault">#FFFFB2</color>
+    <string name="location_icon_desc">location icon</string>
+    <string name="on_top">Keep on top</string>
 </resources>

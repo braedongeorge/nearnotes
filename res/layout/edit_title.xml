@@ -1,21 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content" 
-    android:layout_marginLeft="10sp">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <TextView android:layout_width="wrap_content"
 			android:layout_height="wrap_content" 
 			android:text="@string/titles"
-			android:textColor="#FFF" />
-<EditText 
+			android:textColor="#FFF"/>
+	<EditText android:inputType="text"
         android:id="@+id/title_edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:textColor="#FFF"
-        >
-</EditText>
+        android:textColor="#FFF"/>
 </LinearLayout >
   
  
