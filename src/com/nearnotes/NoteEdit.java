@@ -386,7 +386,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
     		int settingsResult = mDbHelper.fetchSetting();
     		if (settingsResult == mRowId) {
     			mCheckBox.setChecked(true);
-    		} else mCheckBox.setChecked(false);
+    		} else mCheckBoxt.setChecked(false);
     		Cursor note = mDbHelper.fetchNote(mRowId);
     		getActivity().startManagingCursor(note);
     		mTitleText.setText(note.getString(
