@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
+
     <!-- the theme applied to the application or activity -->
-    <style name="CustomActionBarTheme"
-           parent="android:style/Theme.Holo.Light">
+    <style name="CustomActionBarTheme" parent="android:style/Theme.Holo.Light">
         <item name="android:actionBarStyle">@style/MyActionBar</item>
         <item name="android:actionBarTabTextStyle">@style/MyActionBarTabText</item>
         <item name="android:actionMenuTextColor">@color/actionbar_text</item>
@@ -10,37 +10,31 @@
     </style>
 
     <!-- ActionBar styles -->
-    <style name="MyActionBar"
-           parent="android:style/Widget.Holo.ActionBar">
+    <style name="MyActionBar" parent="android:style/Widget.Holo.ActionBar">
         <item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
         <item name="android:layout_width">fill_parent</item>
-       
     </style>
 
     <!-- ActionBar title text -->
-    <style name="MyActionBarTitleText"
-           parent="android:style/TextAppearance.Holo.Widget.ActionBar.Title">
+    <style name="MyActionBarTitleText" parent="android:style/TextAppearance.Holo.Widget.ActionBar.Title">
         <item name="android:textColor">@color/actionbar_text</item>
     </style>
 
     <!-- ActionBar tabs text styles -->
-    <style name="MyActionBarTabText"
-           parent="android:style/Widget.Holo.ActionBar.TabText">
+    <style name="MyActionBarTabText" parent="android:style/Widget.Holo.ActionBar.TabText">
         <item name="android:textColor">@color/actionbar_text</item>
     </style>
-    
+
     <!-- Preferences styles -->
     <style name="PreferencesTheme">
-    <item name="android:windowBackground">@color/backgroundDefault</item>
-    <item name="android:background">@color/backgroundDefault</item>
-	</style>
-	<style name="ActionButtonStyle" parent="@android:style/Widget.Holo.ActionButton">
-    <item name="android:minWidth">0dip</item>
-    <item name="android:paddingLeft">0dip</item>
-    <item name="android:paddingRight">0dip</item>                  
-</style>
-    
-    
-    
-    
+        <item name="android:windowBackground">@color/backgroundDefault</item>
+        <item name="android:background">@color/backgroundDefault</item>
+    </style>
+
+    <style name="ActionButtonStyle" parent="@android:style/Widget.Holo.ActionButton">
+        <item name="android:minWidth">0dip</item>
+        <item name="android:paddingLeft">0dip</item>
+        <item name="android:paddingRight">0dip</item>
+    </style>
+
 </resources>

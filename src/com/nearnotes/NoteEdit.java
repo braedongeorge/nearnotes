@@ -20,14 +20,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationManager;
 import android.net.http.AndroidHttpClient;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,14 +36,11 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.CompoundButton;
-
 import com.nearnotes.R;
 
 
@@ -65,9 +58,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
     private Long mRowId;
     private PlacesAutoCompleteAdapter acAdapter;
     
-	private LocationManager locationManager;
-	private String provider;
-	private Location aLoc;
 	private String location;
 	private double latitude = 0;
 	private double longitude = 0;
@@ -75,9 +65,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	
 	private double mLongitude;
     private double mLatitude;
-    private boolean startAPI;
-    private Boolean delayFlag;
-    private ProgressBar mProgressAPI;
     private CheckBox mCheckBox;
     
     private NotesDbAdapter mDbHelper;
@@ -89,9 +76,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
         public void setEditItems();
     }
 
-    
-  
-    
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -105,13 +90,62 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
     } 
 
     
-    
-    
-    
-    
-    
-  
+    @Override
+	public void onStart() {
+		super.onStart();
+		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
+	
+		mCallback.setEditItems();
+		if (mRowId == null) {
+			Bundle extras = getArguments();
+			if (!extras.containsKey(NotesDbAdapter.KEY_ROWID)) {
+				//mTitleText.setText("");
+			}
+			mRowId = extras.containsKey(NotesDbAdapter.KEY_ROWID) ? extras.getLong(NotesDbAdapter.KEY_ROWID)
+     								: null;
+		}    
+		
+		getActivity().setTitle(R.string.edit_note);
 
+		 Bundle bundle=getArguments();
+	     mLongitude = bundle.getDouble("longitude");
+	     mLatitude = bundle.getDouble("latitude");
+		
+		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
+		mBodyText = (EditText) getView().findViewById(R.id.body);
+	
+		acAdapter = new PlacesAutoCompleteAdapter(getActivity(), R.layout.list_item);
+		
+		mCheckBox = (CheckBox) getActivity().findViewById(R.id.checkbox_on_top);
+		mCheckBox.setOnClickListener(new OnClickListener() {
+
+		      @Override
+		      public void onClick(View v) {
+	        	  if (((CheckBox) v).isChecked() && mRowId != null) {
+	        		  Log.e("db",String.valueOf(mRowId));
+	        		  mDbHelper.updateSetting(mRowId);
+	        		  
+	        	  }
+		               
+		         else if (mRowId != null) {
+		                mDbHelper.removeSetting();
+		         }
+		      }
+		    });
+		
+		// mProgressAPI = (ProgressBar) getView().findViewById(R.id.progressAPI);
+	
+		autoCompView = (DelayAutoCompleteTextView) getView().findViewById(R.id.autoCompleteTextView1);
+		autoCompView.setAdapter(acAdapter);
+		autoCompView.setOnItemClickListener(this);
+		autoCompView.setLoadingIndicator((ProgressBar) getView().findViewById(R.id.progressAPI),(ImageView) getView().findViewById(R.id.location_icon));
+	
+
+ 
+		populateFields();
+	}
+    
+    
     
     private class PlacesAutoCompleteAdapter extends ArrayAdapter<String> implements Filterable {
 	    private ArrayList<String> resultList;
@@ -121,9 +155,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	        super(context, textViewResourceId);
 	    }
 
-	   
-	    
-	    
+
 	    @Override
 	    public int getCount() {
 	    	return resultList.size();
@@ -143,20 +175,13 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	                FilterResults filterResults = new FilterResults();
 	              
 	            if (constraint != null) {
-	            	resultList = autocomplete(constraint.toString());
-	                	
-	                	
-	                	
-	                	
-	                    // Retrieve the autocomplete results.
-	                   
+	            		// Retrieve the autocomplete results.
+	            		resultList = autocomplete(constraint.toString());
 
 	                    // Assign the data to the FilterResults
 	                	if (resultList != null) {
-	                		 
 	                		filterResults.values = resultList;
 	                		filterResults.count = resultList.size();
-	                		
 	                	}
 	                
 	                }
@@ -316,69 +341,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	    super.onCreateOptionsMenu(menu, inflater);
 	}  
 	
-	@Override
-	public void onStart() {
-		
-		super.onStart();
-		
-		delayFlag = false;
-		getActivity().getActionBar().setDisplayShowCustomEnabled(true);
-		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
-		
-		
-		mCallback.setEditItems();
-		if (mRowId == null) {
-			Bundle extras = getArguments();
-			if (!extras.containsKey(NotesDbAdapter.KEY_ROWID)) {
-				mTitleText.setText("");
-			}
-			mRowId = extras.containsKey(NotesDbAdapter.KEY_ROWID) ? extras.getLong(NotesDbAdapter.KEY_ROWID)
-     								: null;
-		}    
-		
-		
-		
-		
-		getActivity().setTitle(R.string.edit_note);
-
-		 Bundle bundle=getArguments();
-	     mLongitude = bundle.getDouble("longitude");
-	     mLatitude = bundle.getDouble("latitude");
-	    
-		
-		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
-		mBodyText = (EditText) getView().findViewById(R.id.body);
 	
-		acAdapter = new PlacesAutoCompleteAdapter(getActivity(), R.layout.list_item);
-		
-		mCheckBox = (CheckBox) getActivity().findViewById(R.id.checkbox_on_top);
-		mCheckBox.setOnClickListener(new OnClickListener() {
-
-		      @Override
-		      public void onClick(View v) {
-	        	  if (((CheckBox) v).isChecked()) {
-	        		  Log.e("db",String.valueOf(mRowId));
-	        		  mDbHelper.updateSetting(mRowId);
-	        		  
-	        	  }
-		               
-		         else
-		                mDbHelper.removeSetting();
-
-		      }
-		    });
-		
-		// mProgressAPI = (ProgressBar) getView().findViewById(R.id.progressAPI);
-	
-		autoCompView = (DelayAutoCompleteTextView) getView().findViewById(R.id.autoCompleteTextView1);
-		autoCompView.setAdapter(acAdapter);
-		autoCompView.setOnItemClickListener(this);
-		autoCompView.setLoadingIndicator((ProgressBar) getView().findViewById(R.id.progressAPI),(ImageView) getView().findViewById(R.id.location_icon));
-	
-
- 
-		populateFields();
-	}
     
     
     private void populateFields() {
@@ -386,7 +349,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
     		int settingsResult = mDbHelper.fetchSetting();
     		if (settingsResult == mRowId) {
     			mCheckBox.setChecked(true);
-    		} else mCheckBoxt.setChecked(false);
+    		} else mCheckBox.setChecked(false);
     		Cursor note = mDbHelper.fetchNote(mRowId);
     		getActivity().startManagingCursor(note);
     		mTitleText.setText(note.getString(
@@ -450,13 +413,19 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
     		if (title.isEmpty()) {
     			title = body.substring(0, Math.min(body.length(), 7));
     		}
-    		// Toast.makeText(getActivity(), "longitude variable: " + String.valueOf(mLongitude) + String.valueOf(mLatitude), Toast.LENGTH_LONG).show();  
-    	
+    		    	
     		if (mRowId == null) {
     			long id = mDbHelper.createNote(title, body, latitude, longitude, location);
     			if (id > 0) {
     				mRowId = id;
-    			} 
+    				if (mCheckBox.isChecked()) {
+    					 Log.e("db",String.valueOf(mRowId));
+    					 mDbHelper.updateSetting(mRowId);
+    				}          
+   		         	
+    				}
+    				
+    			 
     		} else {
     			mDbHelper.updateNote(mRowId, title, body, latitude, longitude, location);
     		}

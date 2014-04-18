@@ -31,9 +31,6 @@ public class NoteList extends ListFragment {
     }
     
     
-    
-
-    
     @Override
     public void onStart() {
         super.onStart();
@@ -45,6 +42,7 @@ public class NoteList extends ListFragment {
         mLatitude = bundle.getDouble("latitude");
         fillData(mLongitude, mLatitude);  // Fills the listview using a cursor with the names location of the notes
         registerForContextMenu(getListView());
+        View v = (View) getActivity().findViewById(R.layout.notes_row);
     }
     
     
@@ -87,7 +85,7 @@ public class NoteList extends ListFragment {
         mCallback.onNoteSelected(id);
     }
 
- 
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v,
             ContextMenuInfo menuInfo) {
@@ -101,12 +99,17 @@ public class NoteList extends ListFragment {
         switch(item.getItemId()) {
             case DELETE_ID:
                 AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+                
                 mDbHelper.deleteNote(info.id);
+                if (mDbHelper.fetchSetting() == info.id) {
+                	mDbHelper.removeSetting();
+                }
                 fillData(mLongitude,mLatitude);
                 return true;
         }
         return super.onContextItemSelected(item);
     }
+
 
 
 }
