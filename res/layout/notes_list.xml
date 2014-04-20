@@ -5,10 +5,11 @@
     android:background="#FFFFB2" >
 
     <ListView
-        android:id="@+id/android:list"
+        android:id="@android:id/list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#FFFFB2" />
+        android:background="#FFFFB2"
+        android:choiceMode="multipleChoice" />
 
     <TextView
         android:id="@+id/android:empty"

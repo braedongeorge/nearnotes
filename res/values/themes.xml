@@ -7,12 +7,18 @@
         <item name="android:actionBarTabTextStyle">@style/MyActionBarTabText</item>
         <item name="android:actionMenuTextColor">@color/actionbar_text</item>
         <item name="android:actionButtonStyle">@style/ActionButtonStyle</item>
+        <item name="android:actionModeBackground">@drawable/ab_gradient</item>
+        
+        <item name="android:actionModeCloseDrawable">@drawable/ic_action_done</item>
+        
+        
     </style>
 
     <!-- ActionBar styles -->
     <style name="MyActionBar" parent="android:style/Widget.Holo.ActionBar">
         <item name="android:titleTextStyle">@style/MyActionBarTitleText</item>
         <item name="android:layout_width">fill_parent</item>
+        <item name="android:background">@drawable/ab_gradient</item>
     </style>
 
     <!-- ActionBar title text -->
@@ -36,5 +42,11 @@
         <item name="android:paddingLeft">0dip</item>
         <item name="android:paddingRight">0dip</item>
     </style>
+    
+    <style name="ActionModeStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionMode.Title">
+        <item name="android:textColor">@color/actionbar_text</item>
+    </style>
+
+   
 
 </resources>
