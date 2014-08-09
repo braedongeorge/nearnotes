@@ -44,6 +44,7 @@ public class NotesDbAdapter {
 	public static final String KEY_LAT = "latitude";
 	public static final String KEY_LNG = "longitude";
 	public static final String KEY_LOCATION = "location";
+	public static final String KEY_CHECK = "checklist";
 	public static final String KEY_SETTINGS_ONTOP = "ontop";
 
 	private static final String TAG = "NotesDbAdapter";
@@ -54,7 +55,7 @@ public class NotesDbAdapter {
 	 * Database creation sql statement
 	 */
 	private static final String DATABASE_CREATE = "create table notes (_id integer primary key autoincrement, "
-			+ "title text not null, body text not null, latitude real not null, longitude real not null, location text not null);";
+			+ "title text not null, body text not null, latitude real not null, longitude real not null, location text not null, checklist text not null);";
 
 	private static final String DATABASE_CREATE_SETTINGS = "create table settings (_id integer primary key autoincrement, "
 			+ "ontop integer);";
@@ -62,7 +63,7 @@ public class NotesDbAdapter {
 	private static final String DATABASE_NAME = "data";
 	private static final String DATABASE_TABLE = "notes";
 	private static final String DATABASE_TABLE_SETTINGS = "settings";
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 4;
 
 	private final Context mCtx;
 
@@ -74,7 +75,7 @@ public class NotesDbAdapter {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-
+			Log.e("getting here","public void onCreate(SQLiteDatabase db)");
 			db.execSQL(DATABASE_CREATE);
 			db.execSQL(DATABASE_CREATE_SETTINGS);
 			db.execSQL("insert into settings values (NULL, NULL);");
@@ -133,13 +134,14 @@ public class NotesDbAdapter {
 	 * @return rowId or -1 if failed
 	 */
 	public long createNote(String title, String body, double lat, double lng,
-			String location) {
+			String location, String checklist) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_TITLE, title);
 		initialValues.put(KEY_BODY, body);
 		initialValues.put(KEY_LAT, lat);
 		initialValues.put(KEY_LNG, lng);
 		initialValues.put(KEY_LOCATION, location);
+		initialValues.put(KEY_CHECK, checklist);
 		long idsql = -1;
 		try {
 			idsql = mDb.insertOrThrow(DATABASE_TABLE, null, initialValues);
@@ -204,7 +206,7 @@ public class NotesDbAdapter {
 		Cursor mCursor =
 
 		mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
-				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION }, KEY_ROWID + "="
+				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK }, KEY_ROWID + "="
 				+ rowId, null, null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
@@ -228,13 +230,14 @@ public class NotesDbAdapter {
 	 */
 
 	public boolean updateNote(long rowId, String title, String body,
-			double lat, double lng, String location) {
+			double lat, double lng, String location, String checklist) {
 		ContentValues args = new ContentValues();
 		args.put(KEY_TITLE, title);
 		args.put(KEY_BODY, body);
 		args.put(KEY_LAT, lat);
 		args.put(KEY_LNG, lng);
 		args.put(KEY_LOCATION, location);
+		args.put(KEY_CHECK, checklist);
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}
@@ -272,6 +275,7 @@ public class NotesDbAdapter {
 
 	public int fetchSetting() throws SQLException {
 		int rowResult = -1;
+		Log.e("fetching", "fetching");
 		Cursor mCursor =
 
 		mDb.query(true, DATABASE_TABLE_SETTINGS, new String[] { KEY_ROWID,

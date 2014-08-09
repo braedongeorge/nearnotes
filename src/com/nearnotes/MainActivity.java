@@ -23,12 +23,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.nearnotes.R;
-
-public class MainActivity extends FragmentActivity implements
-		NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener,
-		NoteLocation.NoteLocationListener, NoteSettings.noteSettingsListener {
+public class MainActivity extends FragmentActivity implements NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener,
+		NoteLocation.NoteLocationListener, NoteSettings.noteSettingsListener, ChecklistDialog.CheckDialogListener {
 	// Set class objects
+	private static final int NOTE_EDIT = 1;
+	private static final int NOTE_LIST = 2;
+	private static final int NOTE_SETTINGS = 3;
 	public NotesDbAdapter mDbHelper;
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
@@ -45,30 +45,44 @@ public class MainActivity extends FragmentActivity implements
 	private int mFragType = 0;
 	private boolean mOnlyOrientation = false;
 
+	 @Override 
+	 public void onOptionSelected(int which, long temporaryDelId) {
+
+	       Log.e("which", String.valueOf(which));
+
+			if (which == 1) {
+				mDbHelper.deleteNote(temporaryDelId);
+				if (mDbHelper.fetchSetting() == temporaryDelId) {
+					mDbHelper.removeSetting();
+				}
+				fetchAllNotes();
+			}
+	       NoteEdit articleFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+	       if (articleFrag != null) {
+	            // If article frag is available, we're in two-pane layout...
+
+	            // Call a method in the ArticleFragment to update its content
+	            articleFrag.getCheckNumber(which);
+	        } 
+	    }
+	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		mDbHelper = new NotesDbAdapter(this); // Create new custom database
-												// class for sqlite and pass the
-												// current context as a variable
+		mDbHelper = new NotesDbAdapter(this); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
-		// mLoc = new NoteLocation(this);
-		// double[] locations = mLoc.getLocation();
-		// showDialogs(1);
-
+		Log.e("getting here","oncreate mainactivity");
 		// enable ActionBar app icon to behave as action to toggle nav drawer
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
-		
-		
 
-		LayoutParams lp = new LayoutParams(LayoutParams.MATCH_PARENT,
-				LayoutParams.WRAP_CONTENT, Gravity.NO_GRAVITY);
+		LayoutParams lp = new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+				Gravity.NO_GRAVITY);
 
-		View customNav = LayoutInflater.from(this).inflate(R.layout.edit_title,
-				null); // layout which contains your button.
+		View customNav = LayoutInflater.from(this).inflate(R.layout.edit_title, null); // layout which contains your button.
 
 		getActionBar().setDisplayShowCustomEnabled(true);
 
@@ -80,17 +94,13 @@ public class MainActivity extends FragmentActivity implements
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
-		// set a custom shadow that overlays the main content when the drawer
-		// opens
-		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow,
-				GravityCompat.START);
+		// set a custom shadow that overlays the main content when the drawer opens
+		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
 		// set up the drawer's list view with items and click listener
-		mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-				R.layout.drawer_list_item, mMenuTitles));
+		mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mMenuTitles));
 		mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
-		// ActionBarDrawerToggle ties together the the proper interactions
-		// between the sliding drawer and the action bar app icon
+		// ActionBarDrawerToggle ties together the the proper interactions between the sliding drawer and the action bar app icon
 		mDrawerToggle = new ActionBarDrawerToggle(this, /* host Activity */
 		mDrawerLayout, /* DrawerLayout object */
 		R.drawable.ic_drawer, /* nav drawer image to replace 'Up' caret */
@@ -100,15 +110,13 @@ public class MainActivity extends FragmentActivity implements
 			@Override
 			public void onDrawerClosed(View view) {
 				getActionBar().setTitle(mTitle);
-				invalidateOptionsMenu(); // creates call to
-											// onPrepareOptionsMenu()
+				invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
 			}
 
 			@Override
 			public void onDrawerOpened(View drawerView) {
 				getActionBar().setTitle(mDrawerTitle);
-				invalidateOptionsMenu(); // creates call to
-											// onPrepareOptionsMenu()
+				invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
 			}
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
@@ -119,41 +127,41 @@ public class MainActivity extends FragmentActivity implements
 
 		if (findViewById(R.id.fragment_container) != null) {
 
-			// However, if we're being restored from a previous state,
-			// then we don't need to do anything and should return or else
-			// we could end up with overlapping fragments.
+			// However, if we're being restored from a previous state, then we don't need to do anything and should return or else we could end up with overlapping fragments.
 			if (savedInstanceState != null) {
 				return;
 			}
-
 		}
-
 	}
 
+	@Override
 	public void setActionItems() {
 		getActionBar().setDisplayShowCustomEnabled(false);
-		mFragType = 2;
+		mFragType = NOTE_LIST;
 		setTitle("All Notes");
 		invalidateOptionsMenu();
 
 	}
 
+	@Override
 	public void setEditItems() {
-		mFragType = 1;
+		mFragType = NOTE_EDIT;
 		getActionBar().setDisplayShowCustomEnabled(true);
 		setTitle("");
 		invalidateOptionsMenu();
 
 	}
 
+	@Override
 	public void setSettingsItems() {
-		mFragType = 3;
+		mFragType = NOTE_SETTINGS;
 		getActionBar().setDisplayShowCustomEnabled(false);
 		setTitle("Settings");
 		invalidateOptionsMenu();
 
 	}
 
+	@Override
 	public void onNoteSelected(long id) {
 		NoteEdit newFragment = new NoteEdit();
 
@@ -161,8 +169,7 @@ public class MainActivity extends FragmentActivity implements
 		args.putLong("_id", id);
 		newFragment.setArguments(args);
 
-		FragmentTransaction transaction = getSupportFragmentManager()
-				.beginTransaction();
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
 		transaction.replace(R.id.fragment_container, newFragment);
 		transaction.addToBackStack(null);
@@ -171,6 +178,7 @@ public class MainActivity extends FragmentActivity implements
 
 	}
 
+	@Override
 	public Location onLocationFound(Location location, int TypeFrag) {
 		if (location == null) {
 			fetchAllNotes();
@@ -179,10 +187,10 @@ public class MainActivity extends FragmentActivity implements
 			mLongitude = location.getLongitude();
 			mAccuracy = location.getAccuracy();
 			mLoc.dismiss();
-			if (TypeFrag == 2) {
+			if (TypeFrag == NOTE_LIST) {
 				fetchAllNotes();
 
-			} else if (TypeFrag == 1) {
+			} else if (TypeFrag == NOTE_EDIT) {
 				fetchFirstNote();
 
 			}
@@ -200,11 +208,9 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	/* The click listener for ListView in the navigation drawer */
-	private class DrawerItemClickListener implements
-			ListView.OnItemClickListener {
+	private class DrawerItemClickListener implements ListView.OnItemClickListener {
 		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position,
-				long id) {
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			selectItem(position);
 		}
 	}
@@ -233,20 +239,17 @@ public class MainActivity extends FragmentActivity implements
 
 		newFragment.setArguments(bundle);
 
-		FragmentTransaction transaction1 = getSupportFragmentManager()
-				.beginTransaction();
+		FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
 
 		transaction1.replace(R.id.fragment_container, newFragment);
 		transaction1.addToBackStack(null);
 		transaction1.commit();
 		;
-
 	}
 
 	public boolean fetchFirstNote() {
 
-		Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude,
-				mLatitude);
+		Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);
 		if (notesCursor.getCount() > 0) {
 
 			notesCursor.moveToFirst();
@@ -261,20 +264,14 @@ public class MainActivity extends FragmentActivity implements
 			Toast.makeText(this, "No Notes Yet", Toast.LENGTH_SHORT).show();
 			return false;
 		}
-
 	}
 
 	public void fetchSettings() {
-
-		getFragmentManager().beginTransaction()
-
-		.replace(R.id.fragment_container, new NoteSettings())
-				.addToBackStack(null).commit();
+		getFragmentManager().beginTransaction().replace(R.id.fragment_container, new NoteSettings()).addToBackStack(null).commit();
 
 	}
 
 	public void fetchAllNotes() {
-
 		NoteList newFragment = new NoteList();
 
 		Bundle args = new Bundle();
@@ -295,22 +292,18 @@ public class MainActivity extends FragmentActivity implements
 			menu.findItem(R.id.action_new).setVisible(false);
 			menu.findItem(R.id.action_done).setVisible(true);
 			menu.findItem(R.id.action_location).setVisible(false);
-			menu.findItem(R.id.action_note_menu).setVisible(true);
 			break;
 		case 2:
 			menu.findItem(R.id.action_new).setVisible(true);
 			menu.findItem(R.id.action_done).setVisible(false);
 			menu.findItem(R.id.action_location).setVisible(true);
-			menu.findItem(R.id.action_note_menu).setVisible(false);
 			break;
 		case 3:
 			menu.findItem(R.id.action_new).setVisible(false);
 			menu.findItem(R.id.action_done).setVisible(false);
 			menu.findItem(R.id.action_location).setVisible(false);
-			menu.findItem(R.id.action_note_menu).setVisible(false);
 			break;
 		}
-
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -353,8 +346,7 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// The action bar home/up action should open or close the drawer.
-		// ActionBarDrawerToggle will take care of this.
+		// The action bar home/up action should open or close the drawer. ActionBarDrawerToggle will take care of this.
 		if (mDrawerToggle.onOptionsItemSelected(item)) {
 			return true;
 		}
@@ -362,9 +354,7 @@ public class MainActivity extends FragmentActivity implements
 		// Handle presses on the action bar items
 		switch (item.getItemId()) {
 		case R.id.action_new:
-
 			invalidateOptionsMenu();
-
 			NoteEdit newFragment1 = new NoteEdit();
 
 			Bundle args2 = new Bundle();
@@ -372,35 +362,25 @@ public class MainActivity extends FragmentActivity implements
 			args2.putDouble("longitude", mLongitude);
 			newFragment1.setArguments(args2);
 
-			FragmentTransaction transaction1 = getSupportFragmentManager()
-					.beginTransaction();
-
+			FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
 			transaction1.replace(R.id.fragment_container, newFragment1);
 			transaction1.addToBackStack(null);
-
-			// Commit the transaction
 			transaction1.commit();
 			;
 			return true;
 		case R.id.action_done:
-			NoteEdit noteFrag = (NoteEdit) getSupportFragmentManager()
-					.findFragmentById(R.id.fragment_container);
+			Toast.makeText(this, "Note Saved", Toast.LENGTH_SHORT).show();
+			NoteEdit noteFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 			noteFrag.saveState();
 			invalidateOptionsMenu();
-
 			fetchAllNotes();
-
 			return true;
-
 		case R.id.action_location:
-
-			showDialogs(2);
-
+			showDialogs(NOTE_LIST);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
-
 	}
 
 	@Override
@@ -408,10 +388,7 @@ public class MainActivity extends FragmentActivity implements
 		super.onPostResume();
 
 		if (!mOnlyOrientation) {
-
-			Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude,
-					mLatitude);
-
+			Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);
 			int settingsResult = mDbHelper.fetchSetting();
 
 			if (notesCursor.getCount() == 0) {
@@ -421,15 +398,11 @@ public class MainActivity extends FragmentActivity implements
 					Log.e("db1", String.valueOf(settingsResult));
 					onNoteSelected(settingsResult);
 				} else {
-					mFragType = 1;
-
-					showDialogs(1);
+					mFragType = NOTE_EDIT;
+					showDialogs(NOTE_EDIT);
 				}
 			}
-
 		} else
 			mOnlyOrientation = false;
-
 	}
-
 }

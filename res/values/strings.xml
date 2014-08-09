@@ -18,14 +18,28 @@
     <string name="pref_location_title">Location Settings</string>
     <string name="dialog_network_location">Use network location</string>
     <string name="find_note">Finding Nearest Note....</string>
-    <string name="pref_summary_ignore_gps">Always ignore GPS when finding location even if enabled</string>
+    <string name="pref_summary_ignore_gps">Ignore GPS when network location is available</string>
     <string name="pref_title_ignore_gps">Ignore GPS</string>
+    <string name="new_tooltip">New Note</string>
+    <string name="refresh_tooltip">Refresh Location</string>
+    <string name="checkfinished">Checklist Finished</string>
+    <string name="alwayscheck">Always do this</string>
+    <string name="oncecheck">Just Once</string>
 
     <string-array name="menu_array">
         <item>Nearest Note</item>
         <item>All Notes</item>
         <item>Settings</item>
-        <item>Help</item>
+    </string-array>
+    
+    <string-array name="check_array">
+        <item>Clear Note</item>
+        <item>Delete Note</item>
+        <item>Do Nothing</item>
+    </string-array>
+    
+    <string-array name="check_auto">
+        <item>Automatically Do this for all notes</item>
     </string-array>
 
     <string name="drawer_open">Open navigation drawer</string>

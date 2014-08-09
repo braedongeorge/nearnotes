@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 public class NoteLocation extends DialogFragment implements LocationListener {
 	private static final int POWER_MEDIUM = 2;
+	private static final int NOTE_EDIT = 1;
+	private static final int NOTE_LIST = 2;
 	private NoteLocationListener mCallback;
 	public LocationManager mLocationManager;
 	private String mProvider;
@@ -39,11 +41,12 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 		// Use the Builder class for convenient dialog construction
 		Bundle extras = getArguments();
 		mTypeFrag = extras.getInt("TypeFrag");
+		
 
 		SharedPreferences sharedPref = PreferenceManager
 				.getDefaultSharedPreferences(getActivity());
 		Boolean gpsPref = sharedPref.getBoolean("pref_key_ignore_gps", false);
-
+		Log.e("hello",String.valueOf(gpsPref));
 		mLocationManager = (LocationManager) getActivity().getSystemService(
 				Context.LOCATION_SERVICE);
 		mCriteria = new Criteria();
@@ -51,29 +54,28 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 			mCriteria.setPowerRequirement(POWER_MEDIUM);
 		}
 		mProvider = mLocationManager.getBestProvider(mCriteria, true);
-
-		// mLocationManager.requestLocationUpdates(mProvider, 200, 0, this);
-
+		Log.e("mprovider",mProvider);
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		if (mProvider.matches("gps")) {
-			if (mTypeFrag == 1) {
+			if (mTypeFrag == NOTE_EDIT) {
 				builder.setTitle("Finding Nearest Note (GPS)...");
-			} else if (mTypeFrag == 2) {
+			} else if (mTypeFrag == NOTE_LIST) {
 				builder.setTitle("Updating Location (GPS)...");
 			}
 
 			Log.e("gps", String.valueOf(mProvider));
 			builder.setPositiveButton(R.string.dialog_network_location, null);
 		} else if (mProvider.matches("network")) {
-			if (mTypeFrag == 1) {
+			if (mTypeFrag == NOTE_EDIT) {
 				builder.setTitle("Finding Nearest Note (Network)...");
-			} else if (mTypeFrag == 2) {
+			} else if (mTypeFrag == NOTE_LIST) {
 				builder.setTitle("Updating Location (Network)...");
 			}
 
 		}
 		builder.setNegativeButton(R.string.dialog_cancel,
 				new DialogInterface.OnClickListener() {
+					@Override
 					public void onClick(DialogInterface dialog, int id) {
 						mCallback.onLocationFound(null, mTypeFrag);
 						mLocationManager.removeUpdates(NoteLocation.this);
@@ -93,7 +95,7 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 			public void onShow(DialogInterface dialog) {
 
 				final Button b = realDialog
-						.getButton(AlertDialog.BUTTON_POSITIVE);
+						.getButton(DialogInterface.BUTTON_POSITIVE);
 				b.setOnClickListener(new View.OnClickListener() {
 
 					@Override
@@ -119,8 +121,6 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 
-		// This makes sure that the container activity has implemented
-		// the callback interface. If not, it throws an exception
 		try {
 			mCallback = (NoteLocationListener) activity;
 		} catch (ClassCastException e) {
@@ -129,15 +129,6 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 		}
 	}
 
-	/*
-	 * @Override public View onCreateView(LayoutInflater inflater, ViewGroup
-	 * container, Bundle savedInstanceState) { View view =
-	 * inflater.inflate(R.layout.dialogue_location, container);
-	 * getDialog().setTitle("Finding Nearest Note...");
-	 * getDialog().setCanceledOnTouchOutside(false);
-	 * 
-	 * return view; }
-	 */
 
 	@Override
 	public void onStart() {

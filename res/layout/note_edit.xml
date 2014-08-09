@@ -78,16 +78,31 @@
         android:layout_height="match_parent"
         android:background="@drawable/background" >
 
-        <EditText
-            android:id="@+id/body"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/background"
-            android:gravity="top"
-            android:inputType="textMultiLine"
-            android:paddingLeft="5dip"
-            android:paddingRight="5dip"
-            android:scrollbars="vertical" />
+            android:paddingTop="10dip"
+            android:orientation="horizontal" >
+
+            <TableLayout
+                android:id="@+id/checkbody"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" >
+            </TableLayout>
+
+            <EditText
+                android:id="@+id/body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:layout_margin="0dp"
+                android:lineSpacingExtra="11dp"
+                android:paddingLeft="5dip"
+                android:paddingRight="5dip"
+                android:paddingTop="2dip"
+                android:scrollbars="vertical" />
+        </LinearLayout>
     </ScrollView>
 
 </LinearLayout>

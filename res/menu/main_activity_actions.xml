@@ -5,17 +5,15 @@
         android:id="@+id/action_location"
         android:icon="@drawable/ic_action_refresh"
         android:showAsAction="always|withText"
-        android:title="@string/blank"/>
+        android:title="@string/refresh_tooltip"/>
     <item
         android:id="@+id/action_new"
         android:icon="@drawable/ic_action_new"
-        android:showAsAction="always"/>
-    <item
-        android:id="@+id/action_note_menu"
-        android:icon="@drawable/ic_action_overflow"
-        android:showAsAction="always"/>
+        android:showAsAction="always"
+        android:title="@string/new_tooltip"/>
     <item
         android:id="@+id/action_done"
+        android:icon="@drawable/ic_action_done"
         android:showAsAction="always"
         android:title="@string/done"/>
 
