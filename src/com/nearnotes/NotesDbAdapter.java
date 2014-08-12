@@ -85,9 +85,9 @@ public class NotesDbAdapter {
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
-			db.execSQL("DROP TABLE IF EXISTS notes");
-			db.execSQL("DROP TABLE IF EXISTS settings");
-			onCreate(db);
+			//db.execSQL("ALTER TABLE notes ADD COLUMN checklist integer DEFAULT 0");
+			//db.execSQL("DROP TABLE IF EXISTS settings");
+			//onCreate(db);
 		}
 	}
 
@@ -135,6 +135,7 @@ public class NotesDbAdapter {
 	 */
 	public long createNote(String title, String body, double lat, double lng,
 			String location, String checklist) {
+		Log.e("checklist","anything? + " + checklist);
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_TITLE, title);
 		initialValues.put(KEY_BODY, body);
@@ -214,6 +215,7 @@ public class NotesDbAdapter {
 		return mCursor;
 
 	}
+	
 
 	/**
 	 * Update the note using the details provided. The note to be updated is
@@ -228,9 +230,9 @@ public class NotesDbAdapter {
 	 *            value to set note body to
 	 * @return true if the note was successfully updated, false otherwise
 	 */
-
 	public boolean updateNote(long rowId, String title, String body,
 			double lat, double lng, String location, String checklist) {
+		Log.e("checklist",checklist);
 		ContentValues args = new ContentValues();
 		args.put(KEY_TITLE, title);
 		args.put(KEY_BODY, body);

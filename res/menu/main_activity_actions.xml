@@ -18,14 +18,13 @@
         android:title="@string/done"/>
     <item
         android:id="@+id/action_overflow"
-        android:actionViewClass="ShareActionProvider"
         android:icon="@drawable/ic_action_overflow"
         android:showAsAction="always"
         android:title="@string/menu">
         <menu>
-             <item android:id="@+id/item1" android:title="Toggle Checklist"></item>
-             <item android:id="@+id/item2" android:title="Clear Note"></item>
-             <item android:id="@+id/item3" android:title="Delete Note"></item>
+             <item android:id="@+id/action_sub_toggle" android:title="Toggle Checklist"></item>
+             <item android:id="@+id/action_sub_clear" android:title="Clear Note"></item>
+             <item android:id="@+id/action_sub_delete" android:title="Delete Note"></item>
         </menu>
     </item>
 

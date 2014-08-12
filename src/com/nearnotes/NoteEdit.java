@@ -69,7 +69,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	private EditText mTitleText;
 	private EditText mBodyText;
 	private DelayAutoCompleteTextView autoCompView;
-	private Long mRowId;
+	public Long mRowId;
 	private PlacesAutoCompleteAdapter acAdapter;
 
 	private String location;
@@ -79,6 +79,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 	private double mLongitude;
 	private double mLatitude;
+	private boolean mChecklist = false;
 	private String checkString;
 	private CheckBox mCheckBox;
 	private List<String> mLines = new ArrayList<String>();
@@ -135,6 +136,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		Bundle bundle = getArguments();
 		mLongitude = bundle.getDouble("longitude");
 		mLatitude = bundle.getDouble("latitude");
+		
 
 		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
 		mBodyText = (EditText) getView().findViewById(R.id.body);
@@ -174,7 +176,11 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				// before accessing getLayout().getLineEnd()
 				ViewTreeObserver obs = mBodyText.getViewTreeObserver();
 				obs.removeGlobalOnLayoutListener(this);
-
+				
+				Log.e("globallayout checklist",String.valueOf(mChecklist));
+				if (!mChecklist) {
+					return;
+				}
 				mBodyText.addTextChangedListener(bodyTextWatcher);
 
 				// Run the code below just once on startup to populate the global listArray mRealRow
@@ -226,6 +232,74 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				}
 			}
 		});
+	}
+
+	public void toggleChecklist() {
+		if (mChecklist) {
+			Toast.makeText(getActivity(), "Checklist off", Toast.LENGTH_SHORT).show();
+			mChecklist = false;
+			mTblAddLayout.removeAllViews();
+			mBodyText.removeTextChangedListener(bodyTextWatcher);
+			Spannable spannable = (Spannable) mBodyText.getText();
+			Object spansToRemove[] = spannable.getSpans(0, spannable.length(), Object.class);
+			for (Object span : spansToRemove) {
+				if (span instanceof CharacterStyle)
+					spannable.removeSpan(span);
+			}
+		} else {
+			Toast.makeText(getActivity(), "Checklist on", Toast.LENGTH_SHORT).show();
+			mChecklist = true;
+			mBodyText.addTextChangedListener(bodyTextWatcher);
+
+			String tempBoxes = mBodyText.getText().toString();
+			if (mBodyText.getLayout() != null) {
+				mRealRow = populateBoxes(tempBoxes);
+
+				int row = 0;
+				for (NoteRow line : mRealRow) {
+					switch (line.getType()) {
+					case 0:
+						TableRow inflate = (TableRow) View.inflate(getActivity(), R.layout.table_row_invisible, null);
+						mTblAddLayout.addView(inflate);
+						break;
+					case 1:
+						TableRow checkRow = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
+						CheckBox temp = (CheckBox) checkRow.getChildAt(0);
+						temp.setTag(Integer.valueOf(row));
+						mTblAddLayout.addView(checkRow);
+						temp.setOnClickListener(checkBoxListener);
+						break;
+					case 2:
+						int spanstart = 0;
+						StrikethroughSpan STRIKE_THROUGH_SPAN = new StrikethroughSpan();
+						Spannable spannable = (Spannable) mBodyText.getText();
+
+						TableRow checkRow1 = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
+						CheckBox temp1 = (CheckBox) checkRow1.getChildAt(0);
+
+						temp1.setTag(Integer.valueOf(row));
+						temp1.setChecked(true);
+						for (int j = 0; j < row; j++) {
+							spanstart += mLines.get(j).length() + 1;
+						}
+						// text.insert(spanstart, "[X] ");
+						// mBodyText.setSelection(spanstart);
+						// spannable.setSpan(STRIKE_THROUGH_SPAN, spanstart, spanstart + mLines.get(row).length() + 1, Spanned.SPAN_PARAGRAPH);
+						mTblAddLayout.addView(checkRow1);
+						temp1.setOnClickListener(checkBoxListener);
+						break;
+					}
+
+					for (int k = 1; line.getSize() > k; k++) {
+						TableRow inflate = (TableRow) View.inflate(getActivity(), R.layout.table_row_invisible, null);
+						mTblAddLayout.addView(inflate);
+					}
+					row++;
+				}
+			}
+
+		}
+
 	}
 
 	/**
@@ -684,7 +758,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			longitude = note.getDouble(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_LNG));
 			latitude = note.getDouble(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_LAT));
 			checkString = note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_CHECK));
-
+			mChecklist = Boolean.parseBoolean(checkString);
+			Log.e("populate fields",String.valueOf(checkString));
 		} else {
 			autoCompView.requestFocus();
 			InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -733,7 +808,9 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		if (title.isEmpty()) {
 			title = body.substring(0, Math.min(body.length(), 7));
 		}
-		String listString = "";
+		Log.e("saveState",String.valueOf(mChecklist));
+		String listString = String.valueOf(mChecklist);
+		/*
 		for (int i = 0; i < myArrayList.size(); i++) {
 
 			if (i == (myArrayList.size() - 1)) {
@@ -742,7 +819,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				listString += String.valueOf(myArrayList.get(i)) + "-";
 
 		}
-
+*/
 		Log.w("Checkbox string", listString);
 
 		if (mRowId == null) {

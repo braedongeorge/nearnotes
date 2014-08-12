@@ -35,6 +35,8 @@
     <string name="menu">MENU</string>
     <string name="cancel">Cancel</string>
     <string name="settings">Settings</string>
+    <string name="check_clear">Are you sure you want to clear note?</string>
+    <string name="check_delete">Are you sure you want to delete?</string>
     <string name="pref_checklist_finished">\t \t - Choose your default action</string>
 
     <string-array name="menu_array">

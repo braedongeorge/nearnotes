@@ -25,7 +25,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener,
-		NoteLocation.NoteLocationListener, NoteSettings.noteSettingsListener, ChecklistDialog.CheckDialogListener {
+		NoteLocation.NoteLocationListener, NoteSettings.noteSettingsListener, ChecklistDialog.CheckDialogListener, OverflowDialog.OverflowDialogListener {
 	// Set class objects
 	private static final int NOTE_EDIT = 1;
 	private static final int NOTE_LIST = 2;
@@ -70,7 +70,26 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	        } 
 	    }
 	
-	
+	 public void onConfirmSelected(int which, long mRowId) {
+		 if (which == 1) {
+				mDbHelper.deleteNote(mRowId);
+				if (mDbHelper.fetchSetting() == mRowId) {
+					mDbHelper.removeSetting();
+				}
+				fetchAllNotes();
+			}
+		 if (which == 0) {
+			 NoteEdit articleFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+		       if (articleFrag != null) {
+		            // If article frag is available, we're in two-pane layout...
+
+		            // Call a method in the ArticleFragment to update its content
+		            articleFrag.getCheckNumber(which);
+		        } 
+		 }
+	 }
+	 
+	 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -381,6 +400,44 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			return true;
 		case R.id.action_location:
 			showDialogs(NOTE_LIST);
+			return true;
+		case R.id.action_sub_toggle:
+			NoteEdit noteFrag1 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+			noteFrag1.toggleChecklist();
+			return true;
+		case R.id.action_sub_delete:
+			NoteEdit noteFrag2 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+			OverflowDialog newFragment = new OverflowDialog();
+			if (noteFrag2.mRowId == null) {
+				noteFrag2.saveState();
+			}
+			Bundle args = new Bundle();
+			args.putLong("_id", noteFrag2.mRowId);
+			args.putInt("confirmSelection",1);
+			newFragment.setArguments(args);
+		
+			if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null) {
+				newFragment.show(getSupportFragmentManager(), "ConfirmDialog");
+			}
+			
+			
+			return true;
+		case R.id.action_sub_clear:
+			NoteEdit noteFrag3 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+			OverflowDialog newFragment2 = new OverflowDialog();
+			if (noteFrag3.mRowId == null) {
+				noteFrag3.saveState();
+			}
+			Bundle args3 = new Bundle();
+			args3.putLong("_id", noteFrag3.mRowId);
+			args3.putInt("confirmSelection",0);
+			newFragment2.setArguments(args3);
+		
+			if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null) {
+				newFragment2.show(getSupportFragmentManager(), "ConfirmDialog");
+			}
+			
+			
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
