@@ -17,18 +17,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.nearnotes.ChecklistDialog.CheckDialogListener;
-
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.http.AndroidHttpClient;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.Spanned;
@@ -92,8 +91,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 	private ArrayList<String> referenceList;
 
-	
-	
 	public interface noteEditListener { // Container Activity must implement this interface
 		public void setEditItems();
 	}
@@ -110,15 +107,15 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	}
 
 	public void getCheckNumber(int which) {
-		if (which == 0 ) {
+		if (which == 0) {
 			mBodyText.removeTextChangedListener(bodyTextWatcher);
 			mBodyText.setText("");
 			mTblAddLayout.removeAllViews();
 			mBodyText.addTextChangedListener(bodyTextWatcher);
-		} 
-		Log.e("fragnent which",String.valueOf(which));
+		}
+		Log.e("fragnent which", String.valueOf(which));
 	}
-	
+
 	@Override
 	public void onStart() {
 		super.onStart();
@@ -179,7 +176,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				obs.removeGlobalOnLayoutListener(this);
 
 				mBodyText.addTextChangedListener(bodyTextWatcher);
-				
+
 				// Run the code below just once on startup to populate the global listArray mRealRow
 				String tempBoxes = mBodyText.getText().toString();
 				if (mBodyText.getLayout() != null) {
@@ -203,10 +200,10 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 							int spanstart = 0;
 							StrikethroughSpan STRIKE_THROUGH_SPAN = new StrikethroughSpan();
 							Spannable spannable = (Spannable) mBodyText.getText();
-							
+
 							TableRow checkRow1 = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
 							CheckBox temp1 = (CheckBox) checkRow1.getChildAt(0);
-							
+
 							temp1.setTag(Integer.valueOf(row));
 							temp1.setChecked(true);
 							for (int j = 0; j < row; j++) {
@@ -255,94 +252,89 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 		ArrayList<NoteRow> tempRealRow = new ArrayList<NoteRow>();
 		for (String line : mLines) {
-			// Create a note row object with rowType of 0 (invisible), lineSize of 1 and the current row number
-			NoteRow temp = new NoteRow(0, 1, row);
+			NoteRow temp = new NoteRow(0, 1, row); // Create a note row object with rowType of 0 (invisible), lineSize of 1 and the current row number
+
 			if (!line.isEmpty()) {
 				activeRow++;
-				// Set the NoteRow object to 1 (visible)
-				temp.setType(1);
+				temp.setType(1); // Set the NoteRow object to 1 (visible)
 
 				// Determine how many lines the note takes up
 				int internalCounter = 0;
 				try {
 					float lineLength = (float) line.length();
-					for (int k = 0; (lineLength / (getFloatLineEnd(realRow + k) - getFloatLineEnd(realRow - 1))) > 1; k++) internalCounter++;
-					
+					for (int k = 0; (lineLength / (getFloatLineEnd(realRow + k) - getFloatLineEnd(realRow - 1))) > 1; k++) {
+						internalCounter++;
+					}
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 				}
 
-				// Detemine if the note is supposed to be checked and set the NoteRow object
-				// to 2 (Checked)
+				// Detemine if the note is supposed to be checked and set the NoteRow object to 2 (Checked)
 				if (line.startsWith("[X]")) {
 					finishedCount++;
 					int spanstart = 0;
 					StrikethroughSpan STRIKE_THROUGH_SPAN = new StrikethroughSpan();
 					Spannable spannable = (Spannable) mBodyText.getText();
-					
-					TableRow checkRow1 = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
-					CheckBox temp1 = (CheckBox) checkRow1.getChildAt(0);
-					
-					
-					//temp1.setChecked(true);
+					// TableRow checkRow1 = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
+
 					for (int j = 0; j < row; j++) {
 						spanstart += mLines.get(j).length() + 1;
 					}
-					
-					
+
 					Object spansToRemove[] = spannable.getSpans(spanstart, spanstart + mLines.get(row).length(), Object.class);
 					for (Object span : spansToRemove) {
 						if (span instanceof CharacterStyle)
 							spannable.removeSpan(span);
 					}
-					
-					
+
 					spannable.setSpan(STRIKE_THROUGH_SPAN, spanstart, spanstart + mLines.get(row).length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-					 
 					temp.setType(2);
 				}
 
-
-				// Set the amount of rows the note takes up
-				temp.setSize(1 + internalCounter);
-
-				// Determine the real line on the display text we are on
-				realRow = realRow + internalCounter;
+				temp.setSize(1 + internalCounter); // Set the amount of rows the note takes up
+				realRow = realRow + internalCounter; // Determine the real line on the display text we are on
 			}
 
-			// NoteRow object has been finalized - add to the ListArray<NoteRow>
-			tempRealRow.add(temp);
-
-			// Increase the noteRow and the displayRow for the next line
-			realRow++;
+			tempRealRow.add(temp); // NoteRow object has been finalized - add to the ListArray<NoteRow>
+			realRow++; // Increase the noteRow and the displayRow for the next line
 			row++;
-			
 		}
-		Log.e("finishedCount",String.valueOf(finishedCount));
-		Log.e("row",String.valueOf(row));
+		Log.e("finishedCount", String.valueOf(finishedCount));
+		Log.e("row", String.valueOf(row));
 		if (finishedCount == activeRow && finishedCount != 0) {
-			
-			ChecklistDialog newFragment = new ChecklistDialog();
 
+			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+			boolean useListPref = sharedPref.getBoolean("pref_key_use_checklist_default", false);
+			String stringlistPref = sharedPref.getString("pref_key_checklist_listPref", "2");
+			int listPref = Integer.parseInt(stringlistPref);
+			Log.e("useListPref", String.valueOf(useListPref));
+
+			ChecklistDialog newFragment = new ChecklistDialog();
+			if (mRowId == null) {
+				saveState();
+			}
 			Bundle args = new Bundle();
 			args.putLong("_id", mRowId);
+			args.putBoolean("useDefault", useListPref);
+			args.putInt("listPref", listPref);
 			newFragment.setArguments(args);
-			if (!newFragment.isVisible()) {
+			if (listPref == 2 && useListPref) {
+				return tempRealRow;
+			}
+			if (getFragmentManager().findFragmentByTag("MyDialog") == null) {
 				newFragment.show(getFragmentManager(), "MyDialog");
 			}
-		
-			
-		
-			Log.e("done","done");
+
+			Log.e("done", "done");
 		}
-		
-		
+
 		return tempRealRow;
 	}
 
 	public float getFloatLineEnd(int line) {
 		float x = 0;
-		if (line >= 0) x = (float) mBodyText.getLayout().getLineEnd(line);
+		if (line >= 0)
+			x = (float) mBodyText.getLayout().getLineEnd(line);
 		return x;
 	}
 
@@ -353,12 +345,12 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 		}
 	}
-	
+
 	private TextWatcher bodyTextWatcher = new TextWatcher() {
 		@Override
 		public void afterTextChanged(Editable s) {
 			String tempString = s.toString();
-			
+
 			if (mBodyText.getLayout() != null) {
 				// Convert the old NoteRow listArray and the one just generated into collections and
 				// remove all objects in each collection to determine if they are different if
@@ -376,7 +368,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				if (!sourceList.isEmpty() || !destinationList.isEmpty()) {
 					// Should only be triggered if the two listArrays are different
 					// ie. if a note is longer than the one line, or if a line is added or removed.
-					Log.e("Trigger", "dfdf");
 					mTblAddLayout.removeAllViews();
 					mRealRow = temporaryNote;
 
@@ -416,23 +407,22 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			}
 		}
 
-		
 		@Override
 		public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-			
+
 		}
 
 		@Override
 		public void onTextChanged(CharSequence s, int start, int before, int count) {
-			
+
 		}
 	};
-	
+
 	private OnClickListener checkBoxListener = new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-        	String tempBoxes = mBodyText.getText().toString();
-        	mLines = Arrays.asList(tempBoxes.split(System.getProperty("line.separator")));
+		@Override
+		public void onClick(View v) {
+			String tempBoxes = mBodyText.getText().toString();
+			mLines = Arrays.asList(tempBoxes.split(System.getProperty("line.separator")));
 
 			int i = (Integer) v.getTag();
 			int spanstart = 0;
@@ -446,7 +436,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 					spanstart += mLines.get(j).length() + 1;
 				}
 				text.insert(spanstart, "[X] ");
-				// mBodyText.setSelection(spanstart);
 				spannable.setSpan(STRIKE_THROUGH_SPAN, spanstart, spanstart + mLines.get(i).length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 			} else {
 
@@ -454,11 +443,10 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				for (int j = 0; j < i; j++) {
 					spanstart += mLines.get(j).length() + 1;
 				}
-				
+
 				if (text.subSequence(spanstart, spanstart + 4).toString().contains("[X] ")) {
-					Log.e("finding","the x");
+					Log.e("finding", "the x");
 					text.delete(spanstart, spanstart + 4);
-					// mBodyText.setSelection(spanstart);
 					Object spansToRemove[] = spannable.getSpans(spanstart, spanstart + mLines.get(i).length(), Object.class);
 					for (Object span : spansToRemove) {
 						if (span instanceof CharacterStyle)
@@ -468,7 +456,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			}
 		}
 	};
-    
 
 	public static int countOccurrences(String haystack, char needle) {
 		int count = 0;
@@ -638,8 +625,13 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 		try {
 			// Create a JSON object hierarchy from the results
+			// Log.e("JSON Result",jsonResults.status.toString());
 			JSONObject jsonObj = new JSONObject(jsonResults.toString());
 			JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
+			if (predsJsonArray.length() == 0) {
+				Toast.makeText(getActivity(), "No locations found", Toast.LENGTH_SHORT).show();
+			}
+			// Log.e("isEmpty",String.valueOf(predsJsonArray.length()));
 
 			// Extract the Place descriptions from the results
 			resultList = new ArrayList<String>(predsJsonArray.length());
@@ -651,23 +643,18 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		} catch (JSONException e) {
 			Log.e(LOG_TAG, "Cannot process JSON results", e);
 		}
-
 		return resultList;
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
 		// access options menu from fragment
 		setHasOptionsMenu(true);
-
 		mDbHelper = new NotesDbAdapter(getActivity());
 		mDbHelper.open();
-
 		mRowId = (savedInstanceState == null) ? null : (Long) savedInstanceState.getSerializable(NotesDbAdapter.KEY_ROWID);
 
 		return inflater.inflate(R.layout.note_edit, container, false);
-
 	}
 
 	@Override
@@ -677,6 +664,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		super.onCreateOptionsMenu(menu, inflater);
 	}
 
+	@SuppressWarnings("deprecation")
 	private void populateFields() {
 
 		if (mRowId != null) {
@@ -767,17 +755,13 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				}
 				Toast.makeText(getActivity(), "Note Created", Toast.LENGTH_SHORT).show();
 			}
-
 		} else {
 			mDbHelper.updateNote(mRowId, title, body, latitude, longitude, location, listString);
-
 		}
-
 	}
 
 	public void onCheckboxClicked(View view) {
-		// Is the view now checked?
-		boolean checked = ((CheckBox) view).isChecked();
+		boolean checked = ((CheckBox) view).isChecked(); // Is the view now checked?
 
 		// Check which checkbox was clicked
 		switch (view.getId()) {

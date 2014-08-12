@@ -16,28 +16,42 @@
     <string name="location">Location:</string>
     <string name="dialog_cancel">Cancel</string>
     <string name="pref_location_title">Location Settings</string>
+    <string name="pref_checklist_title">Checklist Settings</string>
     <string name="dialog_network_location">Use network location</string>
     <string name="find_note">Finding Nearest Note....</string>
     <string name="pref_summary_ignore_gps">Ignore GPS when network location is available</string>
     <string name="pref_title_ignore_gps">Ignore GPS</string>
+    <string name="pref_summary_checklist_default">Use a default action</string>
+    <string name="pref_title_checklist_default">Default Action</string>
     <string name="new_tooltip">New Note</string>
     <string name="refresh_tooltip">Refresh Location</string>
     <string name="checkfinished">Checklist Finished</string>
     <string name="alwayscheck">Always do this</string>
     <string name="oncecheck">Just Once</string>
+    <string name="ok">OK</string>
+    <string name="checkfinished_clearnote">Clear Note?</string>
+    <string name="checkfinished_message">To change default action click settings.</string>
+    <string name="checkfinished_deletenote">Delete Note?</string>
+    <string name="menu">MENU</string>
+    <string name="cancel">Cancel</string>
+    <string name="settings">Settings</string>
+    <string name="pref_checklist_finished">\t \t - Choose your default action</string>
 
     <string-array name="menu_array">
         <item>Nearest Note</item>
         <item>All Notes</item>
         <item>Settings</item>
     </string-array>
-    
+    <string-array name="check_array_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
     <string-array name="check_array">
         <item>Clear Note</item>
         <item>Delete Note</item>
         <item>Do Nothing</item>
     </string-array>
-    
     <string-array name="check_auto">
         <item>Automatically Do this for all notes</item>
     </string-array>

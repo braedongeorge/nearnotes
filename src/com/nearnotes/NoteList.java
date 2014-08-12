@@ -1,6 +1,7 @@
 package com.nearnotes;
 
 import java.util.ArrayList;
+
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -147,6 +148,7 @@ public class NoteList extends ListFragment {
 
 
 
+	@SuppressWarnings("deprecation")
 	public void fillData(double longitude, double latitude) {
 
 		Cursor notesCursor = mDbHelper.fetchAllNotes(getActivity(), longitude, latitude); // Get all of the rows from the database and create the item list

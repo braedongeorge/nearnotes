@@ -10,6 +10,7 @@ import android.widget.SimpleCursorAdapter;
 
 	public class SelectionAdapter extends SimpleCursorAdapter {
 
+		@SuppressWarnings("deprecation")
 		public SelectionAdapter(Context context, int layout, Cursor c, String[] from, int[] to) {
 			super(context, layout, c, from, to);
 		}

@@ -14,5 +14,23 @@
             android:summary="@string/pref_summary_ignore_gps"
             android:title="@string/pref_title_ignore_gps" />
     </PreferenceCategory>
+    
+    <PreferenceCategory
+        android:key="pref_key_checklist_settings"
+        android:title="@string/pref_checklist_title" >
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_key_use_checklist_default"
+            android:summary="@string/pref_summary_checklist_default"
+            android:title="@string/pref_title_checklist_default" />
+        
+        <ListPreference
+            android:title="@string/pref_checklist_finished"
+            android:key="pref_key_checklist_listPref"
+            android:defaultValue="2"
+            android:entries="@array/check_array"
+            android:entryValues="@array/check_array_values" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

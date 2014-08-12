@@ -1,24 +1,20 @@
 package com.nearnotes;
 
-import java.util.ArrayList;
-
-import com.nearnotes.NoteLocation.NoteLocationListener;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.location.Location;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 
 public class ChecklistDialog extends DialogFragment {
 	CheckDialogListener mListener;
+	 int mWhich = 2;
 
 	public interface CheckDialogListener {
 		public void onOptionSelected(int which, long mRowId);
-
 		
 	}
 
@@ -37,19 +33,59 @@ public class ChecklistDialog extends DialogFragment {
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-
+		
 		Bundle extras = getArguments();
 		final Long mRowId = extras.getLong(NotesDbAdapter.KEY_ROWID);
-
+		final boolean mUseDefault = extras.getBoolean("useDefault");
+		final int listPref = extras.getInt("listPref");
+		
+		
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		
+		
+		if (mUseDefault) {
+			
+			// Set the dialog title
+			switch (listPref) {
+			case 0: builder.setTitle(R.string.checkfinished_clearnote);
+					builder.setMessage(R.string.checkfinished_message);
+					mWhich = 0;
+					break;
+			case 1: builder.setTitle(R.string.checkfinished_deletenote);
+					builder.setMessage(R.string.checkfinished_message);
+					mWhich = 1;
+					break;
+			}
+			builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int id) {
+					mListener.onOptionSelected(mWhich,mRowId);
+					// User clicked OK, so save the mSelectedItems results somewhere
+					// or return them to the component that opened the dialog
+
+				}
+			}).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int id) {
+
+				}
+			}).setNeutralButton(R.string.settings, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int id) {
+					mListener.onOptionSelected(3,mRowId);
+				}
+			});
+				
+		} else {
+		
 		// Set the dialog title
 		builder.setTitle(R.string.checkfinished)
 		// Specify the list array, the items to be selected by default (null for none),
 		// and the listener through which to receive callbacks when items are selected
-				.setItems(R.array.check_array, new DialogInterface.OnClickListener() {
+				.setSingleChoiceItems(R.array.check_array, 2, new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
 
-						mListener.onOptionSelected(which,mRowId);
+						mWhich = which;
 
 						// The 'which' argument contains the index position
 						// of the selected item
@@ -60,6 +96,7 @@ public class ChecklistDialog extends DialogFragment {
 				.setPositiveButton(R.string.oncecheck, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int id) {
+						mListener.onOptionSelected(mWhich,mRowId);
 						// User clicked OK, so save the mSelectedItems results somewhere
 						// or return them to the component that opened the dialog
 
@@ -67,9 +104,18 @@ public class ChecklistDialog extends DialogFragment {
 				}).setNegativeButton(R.string.alwayscheck, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int id) {
-
+						SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
+						SharedPreferences.Editor editor1 = settings.edit();
+						editor1.putBoolean("pref_key_use_checklist_default",true);
+						editor1.putString("pref_key_checklist_listPref", String.valueOf(mWhich));
+						editor1.commit();
+						
+						
+						mListener.onOptionSelected(mWhich,mRowId);	
 					}
 				});
+		
+		}
 
 		return builder.create();
 	}

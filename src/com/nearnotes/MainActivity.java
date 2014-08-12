@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -40,7 +41,6 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	private CharSequence mTitle;
 	private String[] mMenuTitles;
 	private double mLatitude;
-	private double mAccuracy;
 	private double mLongitude;
 	private int mFragType = 0;
 	private boolean mOnlyOrientation = false;
@@ -56,6 +56,10 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 					mDbHelper.removeSetting();
 				}
 				fetchAllNotes();
+			}
+			if (which == 3) {
+				
+				fetchSettings();
 			}
 	       NoteEdit articleFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 	       if (articleFrag != null) {
@@ -74,7 +78,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 
 		mDbHelper = new NotesDbAdapter(this); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
-		Log.e("getting here","oncreate mainactivity");
+		
 		// enable ActionBar app icon to behave as action to toggle nav drawer
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
@@ -85,19 +89,17 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		View customNav = LayoutInflater.from(this).inflate(R.layout.edit_title, null); // layout which contains your button.
 
 		getActionBar().setDisplayShowCustomEnabled(true);
-
 		getActionBar().setCustomView(customNav, lp);
-
-		// START NAV DRAWER
+		
+		
+		
+		// Start nav drawer
 		mTitle = mDrawerTitle = getTitle();
 		mMenuTitles = getResources().getStringArray(R.array.menu_array);
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
-
-		// set a custom shadow that overlays the main content when the drawer opens
-		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-		// set up the drawer's list view with items and click listener
-		mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mMenuTitles));
+		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START); // set a custom shadow that overlays the main content when the drawer opens
+		mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mMenuTitles)); // set up the drawer's list view with items and click listener
 		mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
 		// ActionBarDrawerToggle ties together the the proper interactions between the sliding drawer and the action bar app icon
@@ -185,7 +187,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		} else {
 			mLatitude = location.getLatitude();
 			mLongitude = location.getLongitude();
-			mAccuracy = location.getAccuracy();
+			// mAccuracy = location.getAccuracy();
 			mLoc.dismiss();
 			if (TypeFrag == NOTE_LIST) {
 				fetchAllNotes();
@@ -286,22 +288,25 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		// If the nav drawer is open, hide action items related to the content
 		// view
-		boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+		// boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
 		switch (mFragType) {
-		case 1:
+		case NOTE_EDIT:
 			menu.findItem(R.id.action_new).setVisible(false);
 			menu.findItem(R.id.action_done).setVisible(true);
 			menu.findItem(R.id.action_location).setVisible(false);
+			menu.findItem(R.id.action_overflow).setVisible(true);
 			break;
-		case 2:
+		case NOTE_LIST:
 			menu.findItem(R.id.action_new).setVisible(true);
 			menu.findItem(R.id.action_done).setVisible(false);
 			menu.findItem(R.id.action_location).setVisible(true);
+			menu.findItem(R.id.action_overflow).setVisible(false);
 			break;
-		case 3:
+		case NOTE_SETTINGS:
 			menu.findItem(R.id.action_new).setVisible(false);
 			menu.findItem(R.id.action_done).setVisible(false);
 			menu.findItem(R.id.action_location).setVisible(false);
+			menu.findItem(R.id.action_overflow).setVisible(false);
 			break;
 		}
 		return super.onPrepareOptionsMenu(menu);
@@ -331,8 +336,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			Log.e("On Config Change", "PORTRAIT");
 		}
 
-		// Pass any configuration change to the drawer toggls
-		mDrawerToggle.onConfigurationChanged(newConfig);
+		mDrawerToggle.onConfigurationChanged(newConfig); // Pass any configuration change to the drawer toggls
 	}
 
 	@Override

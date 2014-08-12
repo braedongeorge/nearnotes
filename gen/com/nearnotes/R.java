@@ -9,8 +9,9 @@ package com.nearnotes;
 
 public final class R {
     public static final class array {
-        public static final int check_array=0x7f050001;
-        public static final int check_auto=0x7f050002;
+        public static final int check_array=0x7f050002;
+        public static final int check_array_values=0x7f050001;
+        public static final int check_auto=0x7f050003;
         public static final int menu_array=0x7f050000;
     }
     public static final class attr {
@@ -41,6 +42,7 @@ public final class R {
         public static final int action_done=0x7f090014;
         public static final int action_location=0x7f090012;
         public static final int action_new=0x7f090013;
+        public static final int action_overflow=0x7f090015;
         public static final int autoCompleteTextView1=0x7f090009;
         public static final int body=0x7f09000b;
         public static final int checkbody=0x7f09000a;
@@ -50,6 +52,9 @@ public final class R {
         public static final int context_delete=0x7f090011;
         public static final int drawer_layout=0x7f090000;
         public static final int fragment_container=0x7f090001;
+        public static final int item1=0x7f090016;
+        public static final int item2=0x7f090017;
+        public static final int item3=0x7f090018;
         public static final int left_drawer=0x7f090002;
         public static final int location_icon=0x7f090007;
         public static final int progressAPI=0x7f090008;
@@ -81,31 +86,42 @@ public final class R {
         public static final int main_activity_actions=0x7f080001;
     }
     public static final class string {
-        public static final int alwayscheck=0x7f040016;
+        public static final int alwayscheck=0x7f040019;
         public static final int app_name=0x7f040000;
         public static final int blank=0x7f040008;
         public static final int body=0x7f040006;
-        public static final int checkfinished=0x7f040015;
+        public static final int cancel=0x7f040020;
+        public static final int checkfinished=0x7f040018;
+        public static final int checkfinished_clearnote=0x7f04001c;
+        public static final int checkfinished_deletenote=0x7f04001e;
+        public static final int checkfinished_message=0x7f04001d;
         public static final int confirm=0x7f040007;
         public static final int dialog_cancel=0x7f04000d;
-        public static final int dialog_network_location=0x7f04000f;
+        public static final int dialog_network_location=0x7f040010;
         public static final int done=0x7f040009;
-        public static final int drawer_close=0x7f040019;
-        public static final int drawer_open=0x7f040018;
+        public static final int drawer_close=0x7f040024;
+        public static final int drawer_open=0x7f040023;
         public static final int edit_note=0x7f04000b;
-        public static final int find_note=0x7f040010;
+        public static final int find_note=0x7f040011;
         public static final int location=0x7f04000c;
-        public static final int location_icon_desc=0x7f04001a;
+        public static final int location_icon_desc=0x7f040025;
+        public static final int menu=0x7f04001f;
         public static final int menu_delete=0x7f040003;
         public static final int menu_insert=0x7f040002;
-        public static final int new_tooltip=0x7f040013;
+        public static final int new_tooltip=0x7f040016;
         public static final int no_notes=0x7f040001;
-        public static final int on_top=0x7f04001b;
-        public static final int oncecheck=0x7f040017;
+        public static final int ok=0x7f04001b;
+        public static final int on_top=0x7f040026;
+        public static final int oncecheck=0x7f04001a;
+        public static final int pref_checklist_finished=0x7f040022;
+        public static final int pref_checklist_title=0x7f04000f;
         public static final int pref_location_title=0x7f04000e;
-        public static final int pref_summary_ignore_gps=0x7f040011;
-        public static final int pref_title_ignore_gps=0x7f040012;
-        public static final int refresh_tooltip=0x7f040014;
+        public static final int pref_summary_checklist_default=0x7f040014;
+        public static final int pref_summary_ignore_gps=0x7f040012;
+        public static final int pref_title_checklist_default=0x7f040015;
+        public static final int pref_title_ignore_gps=0x7f040013;
+        public static final int refresh_tooltip=0x7f040017;
+        public static final int settings=0x7f040021;
         public static final int spacer=0x7f04000a;
         public static final int title=0x7f040005;
         public static final int titles=0x7f040004;

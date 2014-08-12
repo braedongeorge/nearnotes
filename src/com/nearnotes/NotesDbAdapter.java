@@ -267,7 +267,7 @@ public class NotesDbAdapter {
 			int settingRowId = mCursor.getInt(0);
 			ContentValues args = new ContentValues();
 			args.put(KEY_SETTINGS_ONTOP, "null");
-			long result = mDb.update(DATABASE_TABLE_SETTINGS, args, KEY_ROWID
+			mDb.update(DATABASE_TABLE_SETTINGS, args, KEY_ROWID
 					+ "=" + settingRowId, null);
 		}
 
