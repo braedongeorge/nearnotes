@@ -85,6 +85,9 @@ public class NotesDbAdapter {
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
+			if (oldVersion == 3) {
+				db.execSQL("ALTER TABLE notes ADD COLUMN checklist text DEFAULT 'false'");
+			}
 			//db.execSQL("ALTER TABLE notes ADD COLUMN checklist integer DEFAULT 0");
 			//db.execSQL("DROP TABLE IF EXISTS settings");
 			//onCreate(db);

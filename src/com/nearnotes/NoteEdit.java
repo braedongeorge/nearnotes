@@ -670,9 +670,9 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		HttpURLConnection conn = null;
 		StringBuilder jsonResults = new StringBuilder();
 		try {
-			StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_AUTOCOMPLETE + OUT_JSON);
-			sb.append("?sensor=true&key=" + API_KEY);
-			sb.append("&location=" + String.valueOf(mLongitude) + "," + String.valueOf(mLatitude) + "&rankBy=distance");
+			StringBuilder sb = new StringBuilder("http://www.nearnotes.com/index.php");
+			sb.append("?longitude=" + String.valueOf(mLongitude));
+			sb.append("&latitude=" + String.valueOf(mLatitude));
 			sb.append("&input=" + URLEncoder.encode(input, "utf8"));
 
 			URL url = new URL(sb.toString());

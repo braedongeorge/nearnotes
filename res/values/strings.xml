@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">NearNotes</string>
+    <string name="app_name_new">NearNotes</string>
     <string name="no_notes">No Notes Yet</string>
     <string name="menu_insert">Add Note</string>
     <string name="menu_delete">Delete Note</string>
