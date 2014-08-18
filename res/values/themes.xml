@@ -2,13 +2,12 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- the theme applied to the application or activity -->
-    <style name="CustomActionBarTheme" parent="android:style/Theme.Holo.Light">
+    <style name="CustomActionBarTheme" parent="android:style/Theme.Holo.Light.DarkActionBar">
         <item name="android:actionBarStyle">@style/MyActionBar</item>
         <item name="android:actionBarTabTextStyle">@style/MyActionBarTabText</item>
         <item name="android:actionMenuTextColor">@color/actionbar_text</item>
         <item name="android:actionButtonStyle">@style/ActionButtonStyle</item>
         <item name="android:actionModeBackground">@drawable/ab_gradient</item>
-        
         <item name="android:actionModeCloseDrawable">@drawable/ic_action_done</item>
         
         
@@ -38,7 +37,7 @@
     </style>
 
     <style name="ActionButtonStyle" parent="@android:style/Widget.Holo.ActionButton">
-        <item name="android:minWidth">0dip</item>
+        <item name="android:minWidth">1dip</item>
         <item name="android:paddingLeft">0dip</item>
         <item name="android:paddingRight">0dip</item>
     </style>

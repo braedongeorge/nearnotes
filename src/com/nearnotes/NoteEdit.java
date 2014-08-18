@@ -1,3 +1,19 @@
+/*
+ * 	Copyright 2014 Braedon Reid
+ * 
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *	you may not use this file except in compliance with the License.
+ * 	You may obtain a copy of the License at
+ * 
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ *	Unless required by applicable law or agreed to in writing, software
+ *	distributed under the License is distributed on an "AS IS" BASIS,
+ *	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *	See the License for the specific language governing permissions and
+ *	limitations under the License.
+ */
+ 
 package com.nearnotes;
 
 import java.io.IOException;
@@ -59,12 +75,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class NoteEdit extends Fragment implements OnItemClickListener {
-	private static final String LOG_TAG = "ExampleApp";
-	private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
-	private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
-	private static final String TYPE_DETAILS = "/details";
-	private static final String OUT_JSON = "/json";
-	private static final String API_KEY = "AIzaSyDu8TsJIM1Ui3uNaWxh-OMkOgivYW2nsB4";
+	private static final String LOG_TAG = "NearNotes.com";
 
 	private EditText mTitleText;
 	private EditText mBodyText;
@@ -136,7 +147,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		Bundle bundle = getArguments();
 		mLongitude = bundle.getDouble("longitude");
 		mLatitude = bundle.getDouble("latitude");
-		
 
 		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
 		mBodyText = (EditText) getView().findViewById(R.id.body);
@@ -176,8 +186,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				// before accessing getLayout().getLineEnd()
 				ViewTreeObserver obs = mBodyText.getViewTreeObserver();
 				obs.removeGlobalOnLayoutListener(this);
-				
-				Log.e("globallayout checklist",String.valueOf(mChecklist));
+
+				Log.e("globallayout checklist", String.valueOf(mChecklist));
 				if (!mChecklist) {
 					return;
 				}
@@ -759,7 +769,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			latitude = note.getDouble(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_LAT));
 			checkString = note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_CHECK));
 			mChecklist = Boolean.parseBoolean(checkString);
-			Log.e("populate fields",String.valueOf(checkString));
+			Log.e("populate fields", String.valueOf(checkString));
 		} else {
 			autoCompView.requestFocus();
 			InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -808,18 +818,17 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		if (title.isEmpty()) {
 			title = body.substring(0, Math.min(body.length(), 7));
 		}
-		Log.e("saveState",String.valueOf(mChecklist));
+		Log.e("saveState", String.valueOf(mChecklist));
 		String listString = String.valueOf(mChecklist);
 		/*
-		for (int i = 0; i < myArrayList.size(); i++) {
-
-			if (i == (myArrayList.size() - 1)) {
-				listString += String.valueOf(myArrayList.get(i));
-			} else
-				listString += String.valueOf(myArrayList.get(i)) + "-";
-
-		}
-*/
+		 * for (int i = 0; i < myArrayList.size(); i++) {
+		 * 
+		 * if (i == (myArrayList.size() - 1)) { listString +=
+		 * String.valueOf(myArrayList.get(i)); } else listString +=
+		 * String.valueOf(myArrayList.get(i)) + "-";
+		 * 
+		 * }
+		 */
 		Log.w("Checkbox string", listString);
 
 		if (mRowId == null) {
@@ -874,9 +883,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 					count++;
 				}
 			} else {
-				StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_DETAILS + OUT_JSON);
-				sb.append("?sensor=true&key=" + API_KEY);
-				sb.append("&reference=" + String.valueOf(referenceList.get(tempPosition)));
+				StringBuilder sb = new StringBuilder("http://www.nearnotes.com/geocode.php");
+				sb.append("?reference=" + String.valueOf(referenceList.get(tempPosition)));
 				Log.e(LOG_TAG, sb.toString());
 
 				new NetworkTask().execute(sb.toString());
