@@ -34,6 +34,14 @@ public class ChecklistDialog extends DialogFragment {
 		
 	}
 
+	/**
+	 * onAttach is called to check that the MainActivity is implementing the callback
+	 * 
+	 * @param activity
+	 *            the activity that should have the callback implemented
+	 * @throws ClassCastException
+	 *             if the activity does not implement CheckDialogListener
+	 */
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
@@ -47,6 +55,19 @@ public class ChecklistDialog extends DialogFragment {
 		}
 	}
 
+	/**
+	 * Creates a dialog to be returned depending if there is a preference to
+	 * automatically delete or clear the note it will return a confirmation dialog.
+	 * If no preference is selected it will come up with option to delete, clear
+	 * or do nothing to the note.
+	 * 
+	 * @param savedInstanceState
+	 *            this bundle has the unique identifier for the note in the database
+	 *            and the preferences to use a default action and which action
+	 *            the user is currently using.
+	 * @return Dialog depending on user settings
+	 * 
+	 */
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		

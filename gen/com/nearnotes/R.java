@@ -19,6 +19,8 @@ public final class R {
     public static final class color {
         public static final int actionbar_text=0x7f060000;
         public static final int backgroundDefault=0x7f060001;
+        public static final int deepgreen=0x7f060003;
+        public static final int deepred=0x7f060002;
     }
     public static final class drawable {
         public static final int ab_gradient=0x7f020000;
@@ -35,24 +37,26 @@ public final class R {
         public static final int ic_action_overflow=0x7f02000b;
         public static final int ic_action_place=0x7f02000c;
         public static final int ic_action_refresh=0x7f02000d;
-        public static final int ic_drawer=0x7f02000e;
-        public static final int icon=0x7f02000f;
+        public static final int ic_action_select_all=0x7f02000e;
+        public static final int ic_drawer=0x7f02000f;
+        public static final int icon=0x7f020010;
     }
     public static final class id {
-        public static final int action_done=0x7f090014;
-        public static final int action_location=0x7f090012;
-        public static final int action_new=0x7f090013;
-        public static final int action_overflow=0x7f090015;
-        public static final int action_sub_clear=0x7f090017;
-        public static final int action_sub_delete=0x7f090018;
-        public static final int action_sub_toggle=0x7f090016;
+        public static final int action_done=0x7f090015;
+        public static final int action_location=0x7f090013;
+        public static final int action_new=0x7f090014;
+        public static final int action_overflow=0x7f090016;
+        public static final int action_sub_clear=0x7f090018;
+        public static final int action_sub_delete=0x7f090019;
+        public static final int action_sub_toggle=0x7f090017;
         public static final int autoCompleteTextView1=0x7f090009;
         public static final int body=0x7f09000b;
         public static final int checkbody=0x7f09000a;
         public static final int checkbox1=0x7f090010;
         public static final int checkbox_on_top=0x7f090006;
         public static final int content_frame=0x7f090004;
-        public static final int context_delete=0x7f090011;
+        public static final int context_delete=0x7f090012;
+        public static final int context_select_all=0x7f090011;
         public static final int drawer_layout=0x7f090000;
         public static final int fragment_container=0x7f090001;
         public static final int left_drawer=0x7f090002;
@@ -86,47 +90,54 @@ public final class R {
         public static final int main_activity_actions=0x7f080001;
     }
     public static final class string {
-        public static final int alwayscheck=0x7f040019;
+        public static final int alwayscheck=0x7f04001d;
         public static final int app_name_new=0x7f040000;
         public static final int blank=0x7f040008;
         public static final int body=0x7f040006;
-        public static final int cancel=0x7f040020;
-        public static final int check_clear=0x7f040022;
-        public static final int check_delete=0x7f040023;
-        public static final int checkfinished=0x7f040018;
-        public static final int checkfinished_clearnote=0x7f04001c;
-        public static final int checkfinished_deletenote=0x7f04001e;
-        public static final int checkfinished_message=0x7f04001d;
+        public static final int cancel=0x7f040027;
+        public static final int check_clear=0x7f040029;
+        public static final int check_delete=0x7f04002a;
+        public static final int checkfinished=0x7f04001c;
+        public static final int checkfinished_clearnote=0x7f040023;
+        public static final int checkfinished_deletenote=0x7f040025;
+        public static final int checkfinished_message=0x7f040024;
+        public static final int clearnote=0x7f040021;
         public static final int confirm=0x7f040007;
+        public static final int deletenote=0x7f040022;
         public static final int dialog_cancel=0x7f04000d;
         public static final int dialog_network_location=0x7f040010;
+        public static final int dialog_passive_location=0x7f040011;
         public static final int done=0x7f040009;
-        public static final int drawer_close=0x7f040026;
-        public static final int drawer_open=0x7f040025;
+        public static final int drawer_close=0x7f04002d;
+        public static final int drawer_open=0x7f04002c;
         public static final int edit_note=0x7f04000b;
-        public static final int find_note=0x7f040011;
+        public static final int find_note=0x7f040012;
         public static final int location=0x7f04000c;
-        public static final int location_icon_desc=0x7f040027;
-        public static final int menu=0x7f04001f;
+        public static final int location_icon_desc=0x7f04002e;
+        public static final int menu=0x7f040026;
         public static final int menu_delete=0x7f040003;
         public static final int menu_insert=0x7f040002;
-        public static final int new_tooltip=0x7f040016;
+        public static final int new_tooltip=0x7f04001a;
         public static final int no_notes=0x7f040001;
-        public static final int ok=0x7f04001b;
-        public static final int on_top=0x7f040028;
-        public static final int oncecheck=0x7f04001a;
-        public static final int pref_checklist_finished=0x7f040024;
+        public static final int ok=0x7f04001f;
+        public static final int on_top=0x7f04002f;
+        public static final int oncecheck=0x7f04001e;
+        public static final int pref_checklist_finished=0x7f04002b;
         public static final int pref_checklist_title=0x7f04000f;
         public static final int pref_location_title=0x7f04000e;
-        public static final int pref_summary_checklist_default=0x7f040014;
-        public static final int pref_summary_ignore_gps=0x7f040012;
-        public static final int pref_title_checklist_default=0x7f040015;
-        public static final int pref_title_ignore_gps=0x7f040013;
-        public static final int refresh_tooltip=0x7f040017;
-        public static final int settings=0x7f040021;
+        public static final int pref_note_title=0x7f040017;
+        public static final int pref_summary_checklist_default=0x7f040015;
+        public static final int pref_summary_ignore_gps=0x7f040013;
+        public static final int pref_summary_note_checklist=0x7f040019;
+        public static final int pref_title_checklist_default=0x7f040016;
+        public static final int pref_title_ignore_gps=0x7f040014;
+        public static final int pref_title_note_checklist=0x7f040018;
+        public static final int refresh_tooltip=0x7f04001b;
+        public static final int settings=0x7f040028;
         public static final int spacer=0x7f04000a;
         public static final int title=0x7f040005;
         public static final int titles=0x7f040004;
+        public static final int togglechecklist=0x7f040020;
     }
     public static final class style {
         public static final int ActionButtonStyle=0x7f070005;

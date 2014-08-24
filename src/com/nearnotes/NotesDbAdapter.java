@@ -75,7 +75,6 @@ public class NotesDbAdapter {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			Log.e("getting here","public void onCreate(SQLiteDatabase db)");
 			db.execSQL(DATABASE_CREATE);
 			db.execSQL(DATABASE_CREATE_SETTINGS);
 			db.execSQL("insert into settings values (NULL, NULL);");
@@ -85,12 +84,9 @@ public class NotesDbAdapter {
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
-			if (oldVersion == 3) {
+			if (oldVersion <= 3) {
 				db.execSQL("ALTER TABLE notes ADD COLUMN checklist text DEFAULT 'false'");
 			}
-			//db.execSQL("ALTER TABLE notes ADD COLUMN checklist integer DEFAULT 0");
-			//db.execSQL("DROP TABLE IF EXISTS settings");
-			//onCreate(db);
 		}
 	}
 
@@ -138,7 +134,6 @@ public class NotesDbAdapter {
 	 */
 	public long createNote(String title, String body, double lat, double lng,
 			String location, String checklist) {
-		Log.e("checklist","anything? + " + checklist);
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_TITLE, title);
 		initialValues.put(KEY_BODY, body);
@@ -153,7 +148,7 @@ public class NotesDbAdapter {
 			String locationNull = "notes.location may not be NULL";
 
 			if (exception.toString().contains(locationNull)) {
-				Toast.makeText(mCtx, "Location cannot be empty",
+				Toast.makeText(mCtx, "Location is empty or invalid",
 						Toast.LENGTH_LONG).show();
 			}
 
@@ -184,7 +179,6 @@ public class NotesDbAdapter {
 		// Location aLoc = nLoc.getLocation();
 		String mlatitude = String.valueOf(latitude);
 		String mlongitude = String.valueOf(longitude);
-		Log.e("current", "Current Position" + mlatitude + mlongitude);
 
 		String fudge = String.valueOf(Math.pow(
 				Math.cos(Math.toRadians(latitude)), 2));
@@ -235,7 +229,6 @@ public class NotesDbAdapter {
 	 */
 	public boolean updateNote(long rowId, String title, String body,
 			double lat, double lng, String location, String checklist) {
-		Log.e("checklist",checklist);
 		ContentValues args = new ContentValues();
 		args.put(KEY_TITLE, title);
 		args.put(KEY_BODY, body);
@@ -280,7 +273,6 @@ public class NotesDbAdapter {
 
 	public int fetchSetting() throws SQLException {
 		int rowResult = -1;
-		Log.e("fetching", "fetching");
 		Cursor mCursor =
 
 		mDb.query(true, DATABASE_TABLE_SETTINGS, new String[] { KEY_ROWID,
@@ -288,7 +280,6 @@ public class NotesDbAdapter {
 		if (mCursor != null) {
 			mCursor.moveToFirst();
 			rowResult = mCursor.getInt(1);
-			Log.e("db", String.valueOf(rowResult));
 		}
 		return rowResult;
 

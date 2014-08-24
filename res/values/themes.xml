@@ -37,9 +37,8 @@
     </style>
 
     <style name="ActionButtonStyle" parent="@android:style/Widget.Holo.ActionButton">
-        <item name="android:minWidth">1dip</item>
-        <item name="android:paddingLeft">0dip</item>
-        <item name="android:paddingRight">0dip</item>
+        <item name="android:paddingLeft">3dip</item>
+        <item name="android:paddingRight">3dip</item>
     </style>
     
     <style name="ActionModeStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionMode.Title">

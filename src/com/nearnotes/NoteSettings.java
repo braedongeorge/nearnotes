@@ -27,10 +27,11 @@ import android.view.ViewGroup;
 
 public class NoteSettings extends PreferenceFragment {
 	noteSettingsListener mCallback;
+	private static final int NOTE_SETTINGS = 3;
 
 	public interface noteSettingsListener { // Container Activity must implement
 											// this interface
-		public void setSettingsItems();
+		public void setActionItems(int fragType);
 	}
 
 	@Override
@@ -73,7 +74,7 @@ public class NoteSettings extends PreferenceFragment {
 	@Override
 	public void onStart() {
 		super.onStart();
-		mCallback.setSettingsItems();
+		mCallback.setActionItems(NOTE_SETTINGS);
 
 	}
 

@@ -33,8 +33,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.menu;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Address;
@@ -63,6 +66,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Filter;
@@ -76,14 +80,14 @@ import android.widget.Toast;
 
 public class NoteEdit extends Fragment implements OnItemClickListener {
 	private static final String LOG_TAG = "NearNotes.com";
-
+	private static final int NOTE_EDIT = 1;
 	private EditText mTitleText;
 	private EditText mBodyText;
 	private DelayAutoCompleteTextView autoCompView;
 	public Long mRowId;
 	private PlacesAutoCompleteAdapter acAdapter;
 
-	private String location;
+	public String location;
 	private double latitude = 0;
 	private double longitude = 0;
 	private int tempPosition = 0;
@@ -91,10 +95,10 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	private double mLongitude;
 	private double mLatitude;
 	private boolean mChecklist = false;
+	private boolean mIgnoreLocation = false;
 	private String checkString;
 	private CheckBox mCheckBox;
 	private List<String> mLines = new ArrayList<String>();
-	private ArrayList<Integer> myArrayList = new ArrayList<Integer>();
 	private ArrayList<NoteRow> mRealRow = new ArrayList<NoteRow>();
 
 	private NotesDbAdapter mDbHelper;
@@ -104,7 +108,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	private ArrayList<String> referenceList;
 
 	public interface noteEditListener { // Container Activity must implement this interface
-		public void setEditItems();
+		public void setActionItems(int fragType);
 	}
 
 	@Override
@@ -118,14 +122,11 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		}
 	}
 
-	public void getCheckNumber(int which) {
-		if (which == 0) {
+	public void getCheckNumber() {
 			mBodyText.removeTextChangedListener(bodyTextWatcher);
 			mBodyText.setText("");
 			mTblAddLayout.removeAllViews();
 			mBodyText.addTextChangedListener(bodyTextWatcher);
-		}
-		Log.e("fragnent which", String.valueOf(which));
 	}
 
 	@Override
@@ -133,7 +134,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		super.onStart();
 		mTitleText = (EditText) getActivity().findViewById(R.id.title_edit);
 
-		mCallback.setEditItems();
+		mCallback.setActionItems(NOTE_EDIT);
 		if (mRowId == null) {
 			Bundle extras = getArguments();
 			if (!extras.containsKey(NotesDbAdapter.KEY_ROWID)) {
@@ -144,6 +145,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 		getActivity().setTitle(R.string.edit_note);
 
+		
+		
 		Bundle bundle = getArguments();
 		mLongitude = bundle.getDouble("longitude");
 		mLatitude = bundle.getDouble("latitude");
@@ -162,11 +165,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			@Override
 			public void onClick(View v) {
 				if (((CheckBox) v).isChecked() && mRowId != null) {
-					Log.e("db", String.valueOf(mRowId));
 					mDbHelper.updateSetting(mRowId);
-
 				}
-
 				else if (mRowId != null) {
 					mDbHelper.removeSetting();
 				}
@@ -179,7 +179,20 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		autoCompView.setLoadingIndicator((ProgressBar) getView().findViewById(R.id.progressAPI),
 				(ImageView) getView().findViewById(R.id.location_icon));
 
+		
+		if (mRowId != null) {
+			autoCompView.setTextColor(getResources().getColor(R.color.deepgreen));
+		} else {
+			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+			boolean checklistPref = sharedPref.getBoolean("pref_key_note_checklist", false);
+			if (checklistPref) {
+				mChecklist = true;
+			}
+		}
+		
+		
 		mBodyText.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+			@SuppressWarnings("deprecation")
 			@Override
 			public void onGlobalLayout() {
 				//This listener is added to make sure the globalLayout has been displayed
@@ -187,7 +200,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				ViewTreeObserver obs = mBodyText.getViewTreeObserver();
 				obs.removeGlobalOnLayoutListener(this);
 
-				Log.e("globallayout checklist", String.valueOf(mChecklist));
 				if (!mChecklist) {
 					return;
 				}
@@ -213,21 +225,10 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 							temp.setOnClickListener(checkBoxListener);
 							break;
 						case 2:
-							int spanstart = 0;
-							StrikethroughSpan STRIKE_THROUGH_SPAN = new StrikethroughSpan();
-							Spannable spannable = (Spannable) mBodyText.getText();
-
 							TableRow checkRow1 = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
 							CheckBox temp1 = (CheckBox) checkRow1.getChildAt(0);
-
 							temp1.setTag(Integer.valueOf(row));
 							temp1.setChecked(true);
-							for (int j = 0; j < row; j++) {
-								spanstart += mLines.get(j).length() + 1;
-							}
-							// text.insert(spanstart, "[X] ");
-							// mBodyText.setSelection(spanstart);
-							// spannable.setSpan(STRIKE_THROUGH_SPAN, spanstart, spanstart + mLines.get(row).length() + 1, Spanned.SPAN_PARAGRAPH);
 							mTblAddLayout.addView(checkRow1);
 							temp1.setOnClickListener(checkBoxListener);
 							break;
@@ -280,21 +281,10 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 						temp.setOnClickListener(checkBoxListener);
 						break;
 					case 2:
-						int spanstart = 0;
-						StrikethroughSpan STRIKE_THROUGH_SPAN = new StrikethroughSpan();
-						Spannable spannable = (Spannable) mBodyText.getText();
-
 						TableRow checkRow1 = (TableRow) View.inflate(getActivity(), R.layout.table_row, null);
 						CheckBox temp1 = (CheckBox) checkRow1.getChildAt(0);
-
 						temp1.setTag(Integer.valueOf(row));
 						temp1.setChecked(true);
-						for (int j = 0; j < row; j++) {
-							spanstart += mLines.get(j).length() + 1;
-						}
-						// text.insert(spanstart, "[X] ");
-						// mBodyText.setSelection(spanstart);
-						// spannable.setSpan(STRIKE_THROUGH_SPAN, spanstart, spanstart + mLines.get(row).length() + 1, Spanned.SPAN_PARAGRAPH);
 						mTblAddLayout.addView(checkRow1);
 						temp1.setOnClickListener(checkBoxListener);
 						break;
@@ -383,15 +373,13 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			realRow++; // Increase the noteRow and the displayRow for the next line
 			row++;
 		}
-		Log.e("finishedCount", String.valueOf(finishedCount));
-		Log.e("row", String.valueOf(row));
+
 		if (finishedCount == activeRow && finishedCount != 0) {
 
 			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
 			boolean useListPref = sharedPref.getBoolean("pref_key_use_checklist_default", false);
 			String stringlistPref = sharedPref.getString("pref_key_checklist_listPref", "2");
 			int listPref = Integer.parseInt(stringlistPref);
-			Log.e("useListPref", String.valueOf(useListPref));
 
 			ChecklistDialog newFragment = new ChecklistDialog();
 			if (mRowId == null) {
@@ -409,7 +397,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				newFragment.show(getFragmentManager(), "MyDialog");
 			}
 
-			Log.e("done", "done");
 		}
 
 		return tempRealRow;
@@ -529,7 +516,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				}
 
 				if (text.subSequence(spanstart, spanstart + 4).toString().contains("[X] ")) {
-					Log.e("finding", "the x");
 					text.delete(spanstart, spanstart + 4);
 					Object spansToRemove[] = spannable.getSpans(spanstart, spanstart + mLines.get(i).length(), Object.class);
 					for (Object span : spansToRemove) {
@@ -639,10 +625,12 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 						return null;
 					} catch (IOException e) {
 						Log.e(LOG_TAG, "Error connecting to Places API", e);
+						
 						return null;
 					}
 				}
 			} catch (IOException e) {
+				Toast.makeText(getActivity(), "You are offline", Toast.LENGTH_SHORT).show();
 				e.printStackTrace();
 				return null;
 			} finally {
@@ -658,14 +646,12 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				result = result.getJSONObject("result");
 				result = result.getJSONObject("geometry");
 				result = result.getJSONObject("location");
-
-				Log.e(LOG_TAG, result.toString());
 				latitude = result.getDouble("lat");
 				longitude = result.getDouble("lng");
 			} catch (JSONException e) {
 				Log.e(LOG_TAG, "Cannot process JSON results", e);
 			}
-
+			autoCompView.setTextColor(getResources().getColor(R.color.deepgreen));
 			ProgressBar tempBar = (ProgressBar) getView().findViewById(R.id.progressAPI);
 			ImageView tempImageView = (ImageView) getView().findViewById(R.id.location_icon);
 			tempBar.setVisibility(View.GONE);
@@ -699,6 +685,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			Log.e(LOG_TAG, "Error processing Places API URL", e);
 			return resultList;
 		} catch (IOException e) {
+			Toast.makeText(getActivity(), "You are offline", Toast.LENGTH_SHORT).show();
 			Log.e(LOG_TAG, "Error connecting to Places API", e);
 			return resultList;
 		} finally {
@@ -709,13 +696,12 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 		try {
 			// Create a JSON object hierarchy from the results
-			// Log.e("JSON Result",jsonResults.status.toString());
 			JSONObject jsonObj = new JSONObject(jsonResults.toString());
 			JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
 			if (predsJsonArray.length() == 0) {
 				Toast.makeText(getActivity(), "No locations found", Toast.LENGTH_SHORT).show();
 			}
-			// Log.e("isEmpty",String.valueOf(predsJsonArray.length()));
+			
 
 			// Extract the Place descriptions from the results
 			resultList = new ArrayList<String>(predsJsonArray.length());
@@ -769,7 +755,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			latitude = note.getDouble(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_LAT));
 			checkString = note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_CHECK));
 			mChecklist = Boolean.parseBoolean(checkString);
-			Log.e("populate fields", String.valueOf(checkString));
 		} else {
 			autoCompView.requestFocus();
 			InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -801,48 +786,44 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	@Override
 	public void onResume() {
 		super.onResume();
-		mCallback.setEditItems();
+		mCallback.setActionItems(NOTE_EDIT);
 		if (mRowId == null) {
 			Bundle extras = getArguments();
 			if (!extras.containsKey(NotesDbAdapter.KEY_ROWID)) {
-				mTitleText.setText("");
+				 mTitleText.setText("");
 			}
 			mRowId = extras.containsKey(NotesDbAdapter.KEY_ROWID) ? extras.getLong(NotesDbAdapter.KEY_ROWID) : null;
 		}
+		mTblAddLayout.removeAllViews();
 		populateFields();
 	}
 
-	public void saveState() {
+	public boolean saveState() {
 		String title = mTitleText.getText().toString();
 		String body = mBodyText.getText().toString();
 		if (title.isEmpty()) {
 			title = body.substring(0, Math.min(body.length(), 7));
 		}
-		Log.e("saveState", String.valueOf(mChecklist));
+		
 		String listString = String.valueOf(mChecklist);
-		/*
-		 * for (int i = 0; i < myArrayList.size(); i++) {
-		 * 
-		 * if (i == (myArrayList.size() - 1)) { listString +=
-		 * String.valueOf(myArrayList.get(i)); } else listString +=
-		 * String.valueOf(myArrayList.get(i)) + "-";
-		 * 
-		 * }
-		 */
-		Log.w("Checkbox string", listString);
 
 		if (mRowId == null) {
+			if (location == null) {
+				
+				return false;
+			}
 			long id = mDbHelper.createNote(title, body, latitude, longitude, location, listString);
 			if (id > 0) {
 				mRowId = id;
 				if (mCheckBox.isChecked()) {
-					Log.e("db", String.valueOf(mRowId));
 					mDbHelper.updateSetting(mRowId);
 				}
 				Toast.makeText(getActivity(), "Note Created", Toast.LENGTH_SHORT).show();
 			}
+			return true;
 		} else {
 			mDbHelper.updateNote(mRowId, title, body, latitude, longitude, location, listString);
+			return true;
 		}
 	}
 
@@ -860,21 +841,22 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		}
 	}
 
+	
+	
+	
+	
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 		mBodyText.requestFocus();
 		autoCompView.setSelection(0);
 		tempPosition = position;
-		Log.e(LOG_TAG, String.valueOf(tempPosition));
 		location = (String) adapterView.getItemAtPosition(position);
-		Log.e(LOG_TAG, location);
 		Geocoder find = new Geocoder(getActivity());
 		try {
 			List<Address> AddressList = find.getFromLocationName(location, 10);
 			if (AddressList.size() > 0) {
 				longitude = AddressList.get(0).getLongitude();
 				latitude = AddressList.get(0).getLatitude();
-				Log.e(LOG_TAG, String.valueOf(longitude));
 				//if 1st provider does not have data, loop through other providers to find it.
 				int count = 0;
 				while (longitude == 0 && count < AddressList.size()) {
@@ -882,12 +864,13 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 					latitude = AddressList.get(count).getLatitude();
 					count++;
 				}
+				autoCompView.setTextColor(getResources().getColor(R.color.deepgreen));
 			} else {
 				StringBuilder sb = new StringBuilder("http://www.nearnotes.com/geocode.php");
 				sb.append("?reference=" + String.valueOf(referenceList.get(tempPosition)));
-				Log.e(LOG_TAG, sb.toString());
-
+				
 				new NetworkTask().execute(sb.toString());
+				
 			}
 		} catch (IOException e) {
 			Log.e(LOG_TAG, "Couldnt received coordinates");

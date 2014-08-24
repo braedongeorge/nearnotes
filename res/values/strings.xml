@@ -18,17 +18,24 @@
     <string name="pref_location_title">Location Settings</string>
     <string name="pref_checklist_title">Checklist Settings</string>
     <string name="dialog_network_location">Use network location</string>
+    <string name="dialog_passive_location">Change location settings</string>
     <string name="find_note">Finding Nearest Note....</string>
-    <string name="pref_summary_ignore_gps">Ignore GPS when network location is available</string>
-    <string name="pref_title_ignore_gps">Ignore GPS</string>
-    <string name="pref_summary_checklist_default">Use a default action</string>
-    <string name="pref_title_checklist_default">Default Action</string>
+    <string name="pref_summary_ignore_gps">Enable GPS to determine location. Note: GPS uses more battery life and does not work indoors. Recommended to be disabled.</string>
+    <string name="pref_title_ignore_gps">Enable GPS</string>
+    <string name="pref_summary_checklist_default">Use a default action when all items are checked</string>
+    <string name="pref_title_checklist_default">Checklist finished - default action</string>
+    <string name="pref_note_title">Note Settings</string>
+    <string name="pref_title_note_checklist">Use a checklist for a new note</string>
+    <string name="pref_summary_note_checklist">By default use a checklist when starting a new note</string>
     <string name="new_tooltip">New Note</string>
     <string name="refresh_tooltip">Refresh Location</string>
     <string name="checkfinished">Checklist Finished</string>
     <string name="alwayscheck">Always do this</string>
     <string name="oncecheck">Just Once</string>
     <string name="ok">OK</string>
+    <string name="togglechecklist">Toggle Checklist</string>
+    <string name="clearnote">Clear Note</string>
+    <string name="deletenote">Delete Note</string>
     <string name="checkfinished_clearnote">Clear Note?</string>
     <string name="checkfinished_message">To change default action click settings.</string>
     <string name="checkfinished_deletenote">Delete Note?</string>
@@ -37,7 +44,7 @@
     <string name="settings">Settings</string>
     <string name="check_clear">Are you sure you want to clear note?</string>
     <string name="check_delete">Are you sure you want to delete?</string>
-    <string name="pref_checklist_finished">\t \t - Choose your default action</string>
+    <string name="pref_checklist_finished">\t \t Choose your default action</string>
 
     <string-array name="menu_array">
         <item>Nearest Note</item>
@@ -66,5 +73,8 @@
 
     <string name="location_icon_desc">location icon</string>
     <string name="on_top">Keep on top</string>
+    
+    <color name="deepred">#B30000</color>
+    <color name="deepgreen">#008714</color>
 
 </resources>

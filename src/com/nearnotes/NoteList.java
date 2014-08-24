@@ -18,10 +18,12 @@ package com.nearnotes;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,6 +31,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AbsListView.MultiChoiceModeListener;
 import android.widget.AdapterView;
@@ -39,11 +42,19 @@ import android.widget.TextView;
 public class NoteList extends ListFragment {
 	private NotesDbAdapter mDbHelper;
 	OnNoteSelectedListener mCallback;
+	private static final int NOTE_LIST = 2;
 	private double mLongitude;
 	private double mLatitude;
+	private ListView mListView;
 	private SelectionAdapter mAdapter;
 	private boolean mActionModeFlag = false;
 	private ArrayList<Long> mSelectedIds;
+
+	public interface OnNoteSelectedListener { // Container Activity must implement this interface
+		public void onNoteSelected(long id);
+
+		public void setActionItems(int fragType);
+	}
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -56,8 +67,7 @@ public class NoteList extends ListFragment {
 			throw new ClassCastException(activity.toString() + " must implement OnHeadlineSelectedListener");
 		}
 	}
-	
-	
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.notes_list, container, false);
@@ -67,7 +77,7 @@ public class NoteList extends ListFragment {
 	public void onStart() {
 		super.onStart();
 
-		mCallback.setActionItems();
+		mCallback.setActionItems(NOTE_LIST);
 		mSelectedIds = new ArrayList<Long>();
 		mDbHelper = new NotesDbAdapter(getActivity()); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
@@ -76,8 +86,11 @@ public class NoteList extends ListFragment {
 		mLongitude = bundle.getDouble("longitude");
 		mLatitude = bundle.getDouble("latitude");
 		fillData(mLongitude, mLatitude);
-
+		mListView = getListView();
+		
+				
 		getListView().setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
+
 		getListView().setMultiChoiceModeListener(new MultiChoiceModeListener() {
 
 			private int nr = 0;
@@ -119,12 +132,24 @@ public class NoteList extends ListFragment {
 					mAdapter.clearSelection();
 					fillData(mLongitude, mLatitude);
 					mode.finish();
+
+					return true;
+				case R.id.context_select_all:
+					SparseBooleanArray checkSparse = getListView().getCheckedItemPositions();
+					for (int i = 0; i < mListView.getCount(); i++) {
+						if (!checkSparse.get(i)) {
+							getListView().setItemChecked(i, true);
+
+						}
+					}
+					return true;
 				}
-				return true;
+				return false;
 			}
 
 			@Override
 			public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+				Log.e("checked", String.valueOf(checked) + " id: " + String.valueOf(id) + " position: " + String.valueOf(position));
 				if (checked) {
 					nr++;
 					mSelectedIds.add(id);
@@ -153,15 +178,6 @@ public class NoteList extends ListFragment {
 		});
 
 	}
-
-
-	public interface OnNoteSelectedListener { // Container Activity must implement this interface
-		public void onNoteSelected(long id);
-
-		public void setActionItems();
-	}
-
-
 
 	@SuppressWarnings("deprecation")
 	public void fillData(double longitude, double latitude) {

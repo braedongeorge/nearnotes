@@ -16,6 +16,18 @@
     </PreferenceCategory>
     
     <PreferenceCategory
+        android:key="pref_key_note_settings"
+        android:title="@string/pref_note_title" >
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_key_note_checklist"
+            android:summary="@string/pref_summary_note_checklist"
+            android:title="@string/pref_title_note_checklist" />       
+       
+    </PreferenceCategory>
+    
+    <PreferenceCategory
         android:key="pref_key_checklist_settings"
         android:title="@string/pref_checklist_title" >
 
@@ -32,5 +44,9 @@
             android:entries="@array/check_array"
             android:entryValues="@array/check_array_values" />
     </PreferenceCategory>
+    
+        
+    
+    
 
 </PreferenceScreen>

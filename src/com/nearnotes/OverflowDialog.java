@@ -28,7 +28,7 @@ public class OverflowDialog extends DialogFragment {
 	 int mWhich = 0;
 
 	public interface OverflowDialogListener {
-		public void onConfirmSelected(int which, long mRowId);
+		public void onOptionSelected(int which, long mRowId);
 		
 	}
 
@@ -37,11 +37,9 @@ public class OverflowDialog extends DialogFragment {
 		super.onAttach(activity);
 		// Verify that the host activity implements the callback interface
 		try {
-			// Instantiate the NoticeDialogListener so we can send events to the host
-			mListener = (OverflowDialogListener) activity;
+			mListener = (OverflowDialogListener) activity; 	// Instantiate the NoticeDialogListener so we can send events to the host
 		} catch (ClassCastException e) {
-			// The activity doesn't implement the interface, throw exception
-			throw new ClassCastException(activity.toString() + " must implement OverflowDialogListener");
+			throw new ClassCastException(activity.toString() + " must implement OverflowDialogListener");  // The activity doesn't implement the interface, throw exception
 		}
 	}
 
@@ -65,7 +63,7 @@ public class OverflowDialog extends DialogFragment {
 			builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int id) {
-					mListener.onConfirmSelected(mWhich,mRowId);
+					mListener.onOptionSelected(mWhich,mRowId);
 					// User clicked OK, so save the mSelectedItems results somewhere
 					// or return them to the component that opened the dialog
 

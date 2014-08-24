@@ -22,9 +22,18 @@
         android:showAsAction="always"
         android:title="@string/menu">
         <menu>
-             <item android:id="@+id/action_sub_toggle" android:title="Toggle Checklist"></item>
-             <item android:id="@+id/action_sub_clear" android:title="Clear Note"></item>
-             <item android:id="@+id/action_sub_delete" android:title="Delete Note"></item>
+            <item
+                android:id="@+id/action_sub_toggle"
+                android:title="@string/togglechecklist">
+            </item>
+            <item
+                android:id="@+id/action_sub_clear"
+                android:title="@string/clearnote">
+            </item>
+            <item
+                android:id="@+id/action_sub_delete"
+                android:title="@string/deletenote">
+            </item>
         </menu>
     </item>
 
