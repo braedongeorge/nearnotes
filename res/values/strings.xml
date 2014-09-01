@@ -92,6 +92,7 @@
     <string-array name="drawer_menu_array">
         <item>Nearest Note</item>
         <item>All Notes</item>
+        <item>Sync with Dropbox</item>
         <item>Settings</item>
     </string-array>
  

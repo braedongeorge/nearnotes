@@ -16,9 +16,12 @@
 
 package com.nearnotes;
 
+import com.dropbox.sync.android.DbxException;
+
 import android.app.ActionBar.LayoutParams;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.location.Location;
@@ -48,6 +51,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	private static final int SELECTED_CLEAR = 0;
 	private static final int SELECTED_DELETE = 1;
 	private static final int SELECTED_SETTINGS = 3;
+    private static final int REQUEST_LINK_TO_DBX = 0;
 	
 	// Set objects
 	public NotesDbAdapter mDbHelper;
@@ -56,6 +60,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	private ActionBarDrawerToggle mDrawerToggle;
 	private NoteLocation mLoc;
 	private AlertDialog mInvalidLocationDialog;
+	private NotesDropbox mNotesDropbox;
 
 	// Set primitive variables
 	private CharSequence mDrawerTitle;
@@ -74,7 +79,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		mDbHelper.open(); // Gets the writable database
 		// enable ActionBar app icon to behave as action to toggle nav drawer
 		
-		
+		mNotesDropbox = new NotesDropbox(this,getApplicationContext());
 		LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,  Gravity.LEFT | Gravity.CENTER_VERTICAL);
 		View customNav = getLayoutInflater().inflate(R.layout.edit_title, null); // layout which contains your button.
 		getActionBar().setDisplayShowCustomEnabled(true);
@@ -184,6 +189,30 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		invalidateOptionsMenu();
 	}
 
+	
+	 @Override
+	    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	        if (requestCode == REQUEST_LINK_TO_DBX) {
+	            if (resultCode == RESULT_OK) {
+	            	Toast.makeText(this, "Link to Dropbox succeeded.", Toast.LENGTH_SHORT).show();
+	            	 try {
+	            		 mNotesDropbox.populateDropbox(mDbHelper.fetchAllNotes(this, mLongitude, mLatitude));
+	                     }
+	                  catch (DbxException e) {
+	                	  e.printStackTrace();
+	                      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+	                 }
+	            	
+	            } else {
+	                // ... Link failed or was cancelled by the user.
+	                Toast.makeText(this, "Link to Dropbox failed.", Toast.LENGTH_SHORT).show();
+	            }
+	        } else {
+	            super.onActivityResult(requestCode, resultCode, data);
+	        }
+	    }
+	
+	
 	/**
 	 * onNoteSelected creates a new NoteEdit object as a fragment and
 	 * attachs the unique rowId for the not to be displayed in a bundle
@@ -267,6 +296,19 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			fetchAllNotes();
 			break;
 		case 2:
+			 try {
+        		 mNotesDropbox.populateDropbox(mDbHelper.fetchAllNotes(this, mLongitude, mLatitude));
+                 }
+              catch (DbxException e) {
+            	  e.printStackTrace();
+                  Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+             }
+			
+			
+			
+			// mNotesDropbox.dropboxLink();
+			break;	
+		case 3:
 			fetchSettings();
 			break;
 		}
