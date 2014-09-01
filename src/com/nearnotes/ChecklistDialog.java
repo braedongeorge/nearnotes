@@ -106,7 +106,7 @@ public class ChecklistDialog extends DialogFragment {
 				public void onClick(DialogInterface dialog, int id) {
 
 				}
-			}).setNeutralButton(R.string.settings, new DialogInterface.OnClickListener() {
+			}).setNeutralButton(R.string.dialog_checklist_settings, new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int id) {
 					mListener.onOptionSelected(3,mRowId);

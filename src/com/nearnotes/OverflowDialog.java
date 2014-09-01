@@ -59,6 +59,14 @@ public class OverflowDialog extends DialogFragment {
 			case 1: builder.setTitle(R.string.check_delete);
 					mWhich = 1;
 					break;
+			case 2: builder.setTitle(R.string.check_not_saved);
+					builder.setNegativeButton(R.string.ok, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int id) {
+
+						}
+					});
+					return builder.create();
 			}
 			builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 				@Override

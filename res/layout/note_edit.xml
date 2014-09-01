@@ -36,7 +36,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
@@ -59,10 +59,12 @@
             android:id="@+id/autoCompleteTextView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:hint="Enter location"
+            android:hint="@string/enter_location"
+            android:completionHintView="@layout/completion_hint_view"
             android:ellipsize="end"
             android:ems="10"
+            android:minWidth="500dp"
+            android:maxWidth="500dp"
             android:textColor="@color/deepred"
             android:singleLine="true" >
         </com.nearnotes.DelayAutoCompleteTextView>
@@ -98,7 +100,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textMultiLine"
-                android:hint="Enter Notes"
+                android:hint="@string/enter_notes"
                 android:layout_margin="0dp"
                 android:lineSpacingExtra="11dp"
                 android:paddingLeft="5dip"

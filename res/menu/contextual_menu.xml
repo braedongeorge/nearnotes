@@ -3,11 +3,11 @@
 
     
      <item
-        android:title="select all"
+        android:title="@string/cab_select_all"
         android:id="@+id/context_select_all"
         android:icon="@drawable/ic_action_select_all"/>
     <item
-        android:title="delete"
+        android:title="@string/cab_delete"
         android:id="@+id/context_delete"
         android:icon="@drawable/ic_action_discard"/>
    

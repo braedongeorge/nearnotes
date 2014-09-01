@@ -21,25 +21,26 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
-import android.content.DialogInterface.OnShowListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.SettingInjectorService;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.support.v4.app.DialogFragment;
+import android.telephony.PhoneStateListener;
+import android.telephony.ServiceState;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -55,6 +56,7 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 	private String mProvider;
 	private Criteria mCriteria;
 	private int mTypeFrag;
+	private int mServiceState = 4;
 	private AlertDialog mRealDialog;
 	private boolean mAbortRequest = false;
 
@@ -81,21 +83,32 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 		} else mCriteria.setPowerRequirement(Criteria.POWER_MEDIUM);
 		mProvider = mLocationManager.getBestProvider(mCriteria, true);
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		
 		boolean oldApi = false;
 		int locationMode = 4;
 		Log.e("mProvider",mProvider);
 		
 		ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo networkInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+	    NetworkInfo networkInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 	    boolean networkAvailable = true;
 	    
+	    
+	    
+	    TelephonyManager tm = (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
+	    boolean networkType = true;
+	    if (tm.getNetworkType() == TelephonyManager.NETWORK_TYPE_UNKNOWN && !networkInfo.isConnected()) {
+	    	networkType = false;
+	    }
+ 	   
+	   
+ 	   
+ 	    
+ 	    
+	    Log.d("Phone state before if statement", "Phone State: " + mServiceState);
 	    Log.e("network isavailable",String.valueOf(networkInfo.isAvailable()));
-	    if (!networkInfo.isAvailable() || !mLocationManager.isProviderEnabled("network")) {
+	    if (!networkType || !mLocationManager.isProviderEnabled("network")) {
 	    	networkAvailable = false;
 	    }
-	    
-		
-	 
 		
 		try {
 			Log.e("Location_mode", String.valueOf(Settings.Secure.getInt(getActivity().getContentResolver(), Settings.Secure.LOCATION_MODE)));
@@ -106,50 +119,77 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 			e.printStackTrace();
 		}
 		
-
-
 		if ((oldApi && mProvider.matches("passive")) || locationMode == LOCATION_MODE_OFF || (!networkAvailable && (mProvider.matches("network") || (!gpsPref && mProvider.matches("gps"))))) {
-			builder.setTitle("No Location Services Enabled");
-			builder.setMessage("Please enable location services to use the functionality of this app");
-			builder.setNeutralButton(R.string.dialog_passive_location, noNetworkButton);
+			builder.setTitle(getString(R.string.dialog_location_no_location_services_title));
+			builder.setMessage(getString(R.string.dialog_location_no_location_services_message));
+			builder.setNeutralButton(R.string.dialog_location_button_settings, noNetworkButton);
 			mAbortRequest = true;
 		} else if ((oldApi && mProvider.matches("gps") && gpsPref) || (mProvider.matches("gps") && gpsPref && (locationMode == LOCATION_MODE_SENSORS_ONLY || locationMode == LOCATION_MODE_HIGH_ACCURACY))) {
 			if (mTypeFrag == NOTE_EDIT) {
-				builder.setTitle("Finding Nearest Note (GPS)...");
+				builder.setTitle(getString(R.string.dialog_location_finding_note_gps));
 			} else if (mTypeFrag == NOTE_LIST) {
-				builder.setTitle("Updating Location (GPS)...");
+				builder.setTitle(getString(R.string.dialog_location_updating_note_gps));
 			}
-			if (locationMode == LOCATION_MODE_SENSORS_ONLY || (oldApi && mProvider.matches("gps"))) {
-				builder.setMessage("GPS is the only location service enabled. Click settings to enable other location services");
-				builder.setNeutralButton(R.string.dialog_passive_location, noNetworkButton);
+			if (locationMode == LOCATION_MODE_SENSORS_ONLY || (oldApi && mProvider.matches("gps")) || !networkAvailable) {
+				builder.setMessage(getString(R.string.dialog_location_only_gps_message));
+				builder.setNeutralButton(R.string.dialog_location_button_settings, noNetworkButton);
 			
-			} else builder.setPositiveButton(R.string.dialog_network_location, null);
+			} else builder.setPositiveButton(R.string.dialog_location_use_network, null);
 			
 			builder.setView(getActivity().getLayoutInflater().inflate(R.layout.dialogue_location, null));
 			
 		} else if ((oldApi && mProvider.matches("network")) || (mProvider.matches("network") && (locationMode == LOCATION_MODE_BATTERY_SAVING || locationMode == LOCATION_MODE_HIGH_ACCURACY))) {
 			builder.setView(getActivity().getLayoutInflater().inflate(R.layout.dialogue_location, null));
 			if (mTypeFrag == NOTE_EDIT) {
-				builder.setTitle("Finding Nearest Note (Network)...");
+				builder.setTitle(getString(R.string.dialog_location_finding_note_network));
 			} else if (mTypeFrag == NOTE_LIST) {
-				builder.setTitle("Updating Location (Network)...");
+				builder.setTitle(getString(R.string.dialog_location_updating_note_network));
 			}
 
 		} 
-		builder.setNegativeButton(R.string.dialog_cancel, cancelListener);
+		builder.setNegativeButton(R.string.cancel, cancelListener);
 		// Create the AlertDialog object and return it
 		
 		// builder.create();
 
+		
+		builder.setOnKeyListener(new DialogInterface.OnKeyListener() {
+			
+			@Override
+			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+				if (keyCode == KeyEvent.KEYCODE_BACK) {
+					mCallback.onLocationFound(null, mTypeFrag);
+					mLocationManager.removeUpdates(NoteLocation.this);
+					Toast.makeText(getActivity(), "Location request cancelled", Toast.LENGTH_SHORT).show();
+					dialog.cancel();
+					return true;
+		        }
+			
+				return false;
+			}
+		});
+		
 		mRealDialog = builder.create();
 		// final LocationListener getFragment() = this.;
 
 		mRealDialog.setOnShowListener(usingNetwork);
-
+		mRealDialog.setCanceledOnTouchOutside(false);
+		// mRealDialog.setCancelable(false);
 		return mRealDialog;
 
 	}
 
+	private PhoneStateListener mPhoneListener = new PhoneStateListener() {
+	    @Override
+	    public void onServiceStateChanged(ServiceState serviceState) {
+	        Log.d("Phone state", "Phone State: " + serviceState.getState());
+	        mServiceState = serviceState.getState();
+ 
+	        super.onServiceStateChanged(serviceState);
+	    }
+	};
+	
+	
 	private DialogInterface.OnClickListener cancelListener = new DialogInterface.OnClickListener() {
 		@Override
 		public void onClick(DialogInterface dialog, int id) {
@@ -164,7 +204,6 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
-			Log.e("noNetorkButton","hello");
 			Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 			startActivity(callGPSSettingIntent);
 			

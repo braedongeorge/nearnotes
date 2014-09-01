@@ -16,6 +16,7 @@
 
 package com.nearnotes;
 
+import android.app.ActionBar;
 import android.app.ActionBar.LayoutParams;
 import android.app.AlertDialog;
 import android.app.Service;
@@ -23,6 +24,7 @@ import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -30,12 +32,14 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -77,15 +81,18 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		mDbHelper = new NotesDbAdapter(this); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
 		// enable ActionBar app icon to behave as action to toggle nav drawer
-		getActionBar().setDisplayHomeAsUpEnabled(true);
-		getActionBar().setHomeButtonEnabled(true);
-		LayoutParams lp = new LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.NO_GRAVITY);
-		View customNav = LayoutInflater.from(this).inflate(R.layout.edit_title, null); // layout which contains your button.
+		
+		
+		LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,  Gravity.LEFT | Gravity.CENTER_VERTICAL);
+		View customNav = getLayoutInflater().inflate(R.layout.edit_title, null); // layout which contains your button.
 		getActionBar().setDisplayShowCustomEnabled(true);
 		getActionBar().setCustomView(customNav, lp);
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		// getActionBar().setHomeButtonEnabled(true);
+		
 		// Start nav drawer
 		mTitle = mDrawerTitle = getTitle();
-		mMenuTitles = getResources().getStringArray(R.array.menu_array);
+		mMenuTitles = getResources().getStringArray(R.array.drawer_menu_array);
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 		mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START); // set a custom shadow that overlays the main content when the drawer opens
@@ -108,6 +115,17 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
+		 
+		NoteList newFragment = new NoteList();
+		Bundle args = new Bundle();
+		args.putDouble("latitude", mLatitude);
+		args.putDouble("longitude", mLongitude);
+		newFragment.setArguments(args);
+		FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
+		transaction1.replace(R.id.fragment_container, newFragment);
+		// transaction1.addToBackStack(null);
+		transaction1.commit();
+		//fetchAllNotes();
 	}
 	
 	
@@ -156,14 +174,17 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		mFragType = fragType;
 		switch (mFragType) {
 		case NOTE_EDIT:
+			getActionBar().setDisplayShowTitleEnabled(false);
 			getActionBar().setDisplayShowCustomEnabled(true);
 			setTitle("");
 			break;
 		case NOTE_SETTINGS:
+			getActionBar().setDisplayShowTitleEnabled(true);
 			getActionBar().setDisplayShowCustomEnabled(false);
 			setTitle("Settings");
 			break;
 		case NOTE_LIST:
+			getActionBar().setDisplayShowTitleEnabled(true);
 			getActionBar().setDisplayShowCustomEnabled(false);
 			setTitle("All Notes");
 			break;
@@ -387,9 +408,15 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			NoteEdit noteFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 			if (noteFrag.mRowId != null) 
 				Toast.makeText(this, "Note Saved", Toast.LENGTH_SHORT).show();
-			if (noteFrag.saveState()) {
+			
+			
+			if (noteFrag.saveState() && !noteFrag.mNetworkTask) {
 			invalidateOptionsMenu();
 			fetchAllNotes();
+			
+			} else if (noteFrag.mNetworkTask) {
+				mInvalidLocationDialog = customAlert("Location Running","Still updating location","Cancel","OK");
+				mInvalidLocationDialog.show();
 			} else {
 				mInvalidLocationDialog = customAlert("Location Invalid","The location needs to be selected from the drop down list to be valid. An active internet connection is also required.","Cancel Note","Fix Location");
 				mInvalidLocationDialog.show();
@@ -405,21 +432,24 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		case R.id.action_sub_delete:
 			NoteEdit noteFrag2 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 			OverflowDialog newFragment = new OverflowDialog();
-			if (noteFrag2.mRowId == null) 
-				noteFrag2.saveState();
+			
 			Bundle args = new Bundle();
-			args.putLong("_id", noteFrag2.mRowId);
-			args.putInt("confirmSelection", 1);
+			if (noteFrag2.mRowId != null) {
+				args.putLong("_id", noteFrag2.mRowId);
+				args.putInt("confirmSelection", 1);
+			} else args.putInt("confirmSelection", 2);
+			
 			newFragment.setArguments(args);
 			if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null) newFragment.show(getSupportFragmentManager(), "ConfirmDialog");
 			return true;
 		case R.id.action_sub_clear:
 			NoteEdit noteFrag3 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 			OverflowDialog newFragment2 = new OverflowDialog();
-			if (noteFrag3.mRowId == null) 
-				noteFrag3.saveState();
+	
 			Bundle args3 = new Bundle();
-			args3.putLong("_id", noteFrag3.mRowId);
+			if (noteFrag3.mRowId != null) {
+					args3.putLong("_id", noteFrag3.mRowId);
+			}
 			args3.putInt("confirmSelection", 0);
 			newFragment2.setArguments(args3);
 			if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null) newFragment2.show(getSupportFragmentManager(), "ConfirmDialog");
@@ -464,7 +494,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			int settingsResult = mDbHelper.fetchSetting();
 			mDrawerLayout.closeDrawer(mDrawerList);
 			if (notesCursor.getCount() == 0) {
-				fetchAllNotes();
+				showDialogs(NOTE_LIST);
 			} else {
 				if (settingsResult > 0) {
 					onNoteSelected(settingsResult);

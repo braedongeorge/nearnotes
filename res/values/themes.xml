@@ -9,8 +9,10 @@
         <item name="android:actionButtonStyle">@style/ActionButtonStyle</item>
         <item name="android:actionModeBackground">@drawable/ab_gradient</item>
         <item name="android:actionModeCloseDrawable">@drawable/ic_action_done</item>
-        
-        
+    </style>
+
+    <style name="completion_hint_style">
+        <item name="android:drawableRight">@drawable/poweredbygoogleonwhite</item>
     </style>
 
     <!-- ActionBar styles -->
@@ -38,13 +40,11 @@
 
     <style name="ActionButtonStyle" parent="@android:style/Widget.Holo.ActionButton">
         <item name="android:paddingLeft">3dip</item>
-        <item name="android:paddingRight">3dip</item>
+        <item name="android:paddingRight">10dip</item>
     </style>
-    
+
     <style name="ActionModeStyle" parent="@android:style/TextAppearance.Holo.Widget.ActionMode.Title">
         <item name="android:textColor">@color/actionbar_text</item>
     </style>
-
-   
 
 </resources>

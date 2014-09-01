@@ -93,6 +93,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	private int tempPosition = 0;
 
 	private double mLongitude;
+	public boolean mNetworkTask = false;
 	private double mLatitude;
 	private boolean mChecklist = false;
 	private boolean mIgnoreLocation = false;
@@ -137,9 +138,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		mCallback.setActionItems(NOTE_EDIT);
 		if (mRowId == null) {
 			Bundle extras = getArguments();
-			if (!extras.containsKey(NotesDbAdapter.KEY_ROWID)) {
-				//mTitleText.setText("");
-			}
 			mRowId = extras.containsKey(NotesDbAdapter.KEY_ROWID) ? extras.getLong(NotesDbAdapter.KEY_ROWID) : null;
 		}
 
@@ -175,11 +173,14 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 
 		autoCompView = (DelayAutoCompleteTextView) getView().findViewById(R.id.autoCompleteTextView1);
 		autoCompView.setAdapter(acAdapter);
+		//int height = autoCompView.getDropDownHeight();
+		//autoCompView.setDropDownHeight(height + 20);
+		
 		autoCompView.setOnItemClickListener(this);
 		autoCompView.setLoadingIndicator((ProgressBar) getView().findViewById(R.id.progressAPI),
 				(ImageView) getView().findViewById(R.id.location_icon));
 
-		
+		autoCompView.setCompletionHint("");
 		if (mRowId != null) {
 			autoCompView.setTextColor(getResources().getColor(R.color.deepgreen));
 		} else {
@@ -596,6 +597,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			ImageView tempImageView = (ImageView) getView().findViewById(R.id.location_icon);
 			tempBar.setVisibility(View.VISIBLE);
 			tempImageView.setVisibility(View.GONE);
+			mNetworkTask = true;
 
 		}
 
@@ -656,6 +658,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			ImageView tempImageView = (ImageView) getView().findViewById(R.id.location_icon);
 			tempBar.setVisibility(View.GONE);
 			tempImageView.setVisibility(View.VISIBLE);
+			mNetworkTask = false;
 
 		}
 	}
@@ -666,7 +669,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		HttpURLConnection conn = null;
 		StringBuilder jsonResults = new StringBuilder();
 		try {
-			StringBuilder sb = new StringBuilder("http://www.nearnotes.com/index.php");
+			StringBuilder sb = new StringBuilder("http://www.nearnotes.com/places.php");
 			sb.append("?longitude=" + String.valueOf(mLongitude));
 			sb.append("&latitude=" + String.valueOf(mLatitude));
 			sb.append("&input=" + URLEncoder.encode(input, "utf8"));
@@ -868,7 +871,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			} else {
 				StringBuilder sb = new StringBuilder("http://www.nearnotes.com/geocode.php");
 				sb.append("?reference=" + String.valueOf(referenceList.get(tempPosition)));
-				
 				new NetworkTask().execute(sb.toString());
 				
 			}

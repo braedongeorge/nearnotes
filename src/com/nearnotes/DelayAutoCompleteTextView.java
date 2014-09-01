@@ -77,6 +77,7 @@ public class DelayAutoCompleteTextView extends AutoCompleteTextView {
 		mLoadingIndicator.setVisibility(View.GONE);
 		mIconLocation.setVisibility(View.VISIBLE);
 		super.onFilterComplete(count);
+		
 	}
 
 }
