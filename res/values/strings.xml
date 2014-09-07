@@ -92,9 +92,13 @@
     <string-array name="drawer_menu_array">
         <item>Nearest Note</item>
         <item>All Notes</item>
-        <item>Sync with Dropbox</item>
+        <item>Link your Dropbox</item>
         <item>Settings</item>
     </string-array>
+    <string name="sync_dropbox">Sync your notes with Dropbox</string>
+    
+    
+    
  
     <!-- Overflow Menu strings -->
     <string name="check_clear">Are you sure you want to clear note?</string>

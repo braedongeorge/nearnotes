@@ -815,7 +815,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				
 				return false;
 			}
-			long id = mDbHelper.createNote(title, body, latitude, longitude, location, listString);
+			long id = mDbHelper.createNote(title, body, latitude, longitude, location, listString, "");
 			if (id > 0) {
 				mRowId = id;
 				if (mCheckBox.isChecked()) {

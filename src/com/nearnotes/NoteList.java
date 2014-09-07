@@ -17,6 +17,8 @@ package com.nearnotes;
 
 import java.util.ArrayList;
 
+import com.dropbox.sync.android.DbxException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
@@ -49,6 +51,7 @@ public class NoteList extends ListFragment {
 	private SelectionAdapter mAdapter;
 	private boolean mActionModeFlag = false;
 	private ArrayList<Long> mSelectedIds;
+	private NotesDropbox mNotesDropbox;
 
 	public interface OnNoteSelectedListener { // Container Activity must implement this interface
 		public void onNoteSelected(long id);
@@ -82,6 +85,8 @@ public class NoteList extends ListFragment {
 		mDbHelper = new NotesDbAdapter(getActivity()); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
 
+		mNotesDropbox = new NotesDropbox(getActivity(),getActivity().getApplicationContext());
+		
 		Bundle bundle = getArguments();
 		mLongitude = bundle.getDouble("longitude");
 		mLatitude = bundle.getDouble("latitude");
@@ -123,10 +128,13 @@ public class NoteList extends ListFragment {
 
 				case R.id.context_delete:
 					for (Long s : mSelectedIds) {
-						mDbHelper.deleteNote(s);
-						if (mDbHelper.fetchSetting() == s) {
-							mDbHelper.removeSetting();
+						try {
+							mNotesDropbox.deleteDropboxNote(s);
+						} catch (DbxException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
+						
 					}
 					nr = 0;
 					mAdapter.clearSelection();
