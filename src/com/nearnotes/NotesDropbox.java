@@ -1,6 +1,8 @@
 package com.nearnotes;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -15,7 +17,7 @@ import com.dropbox.sync.android.DbxFields;
 import com.dropbox.sync.android.DbxRecord;
 import com.dropbox.sync.android.DbxTable;
 
-public class NotesDropbox {
+public class NotesDropbox implements DbxDatastore.SyncStatusListener {
 	private static final String APP_KEY = "ulivcu8snndodzq";
 	private static final String APP_SECRET = "beja1ot9y4uhj50";
 	private static final String TAG = "NotesDropbox";
@@ -23,20 +25,28 @@ public class NotesDropbox {
 	private static final int REQUEST_LINK_TO_DBX = 0;
 
 	private DbxAccountManager mDbxAcctMgr;
-	private DbxDatastore mDatastore;
+	public DbxDatastore mDatastore;
 	private DbxTable mTable;
 	private DbxAccount mAccount;
 
 	private Context mContext;
 	private Cursor mCursor;
 	public NotesDbAdapter mDbHelper;
+	private boolean mFirstRun = false;
 
 	public NotesDropbox(Context activityContext, Context applicationContext) {
 		mContext = activityContext;
 		mDbxAcctMgr = DbxAccountManager.getInstance(applicationContext, APP_KEY, APP_SECRET);
 
-		if (mDbxAcctMgr.hasLinkedAccount()) 
+		if (mDbxAcctMgr.hasLinkedAccount()) {
 			mAccount = mDbxAcctMgr.getLinkedAccount();
+			try {
+				mDatastore = DbxDatastore.openDefault(mAccount);
+			} catch (DbxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
 		mDbHelper = new NotesDbAdapter(activityContext); // Create new custom database class for sqlite and pass the current context as a variable
 
@@ -52,26 +62,26 @@ public class NotesDropbox {
 
 	};
 
-	private DbxDatastore.SyncStatusListener mDatastoreListener = new DbxDatastore.SyncStatusListener() {
-		@Override
-		public void onDatastoreStatusChange(DbxDatastore ds) {
-			Log.d(TAG, "SYNC STATUS: " + ds.getSyncStatus().toString());
-			if (ds.getSyncStatus().hasIncoming) {
-				try {
-					mDatastore.sync();
-				} catch (DbxException e) {
-					e.printStackTrace();
-				}
-			} else if (!ds.getSyncStatus().isDownloading) {
-				Log.d(TAG, "SYNC STATUS - NOT DOWNLOADING: " + ds.getSyncStatus().toString());
-				try {
-					populateDropbox(mCursor, false);
-				} catch (DbxException e) {
-					e.printStackTrace();
-				}
+	@Override
+	public void onDatastoreStatusChange(DbxDatastore store) {
+		Toast.makeText(mContext, store.getSyncStatus().toString(), Toast.LENGTH_SHORT).show();
+		Log.d(TAG, "SYNC STATUS: " + store.getSyncStatus().toString());
+		if (store.getSyncStatus().hasIncoming) {
+			try {
+				mDatastore.sync();
+			} catch (DbxException e) {
+				e.printStackTrace();
+			}
+		} else if (!store.getSyncStatus().isDownloading && mFirstRun) {
+			Log.d(TAG, "SYNC STATUS - NOT DOWNLOADING: " + store.getSyncStatus().toString());
+			try {
+				populateDropbox(mCursor, false);
+			} catch (DbxException e) {
+				e.printStackTrace();
 			}
 		}
-	};
+		mFirstRun = false;
+	}
 
 	public void dropboxLink() {
 		MainActivity myActivity = (MainActivity) mContext;
@@ -95,8 +105,14 @@ public class NotesDropbox {
 			}
 			return;
 		}
-
-		mDatastore = DbxDatastore.openDefault(mAccount);
+		if (null != mDatastore) {
+			if (!mDatastore.isOpen())
+				mDatastore = DbxDatastore.openDefault(mAccount);
+		} else {
+			mDatastore = DbxDatastore.openDefault(mAccount);
+		}
+			
+		
 		mTable = mDatastore.getTable("notes");
 		Cursor tempNote = mDbHelper.fetchNote(rowId);
 		tempNote.moveToFirst();
@@ -116,15 +132,16 @@ public class NotesDropbox {
 		}
 
 		mDbHelper.deleteNote(rowId);
-		if (mDbHelper.fetchSetting() == rowId) 
+		if (mDbHelper.fetchSetting() == rowId)
 			mDbHelper.removeSetting();
-		
 
-		mDatastore.close();
+		
+		tempNote.close();
 		mDbHelper.close();
 	}
 
 	public void unLink() {
+
 		if (mDbxAcctMgr.hasLinkedAccount()) {
 			mDbxAcctMgr.getLinkedAccount().unlink();
 			mDatastore = null;
@@ -137,40 +154,42 @@ public class NotesDropbox {
 		if (!mDbxAcctMgr.hasLinkedAccount()) {
 			return;
 		} else if (firstRun) {
+			mFirstRun = true;
 			mAccount = mDbxAcctMgr.getLinkedAccount();
-			mAccount.addListener(mAccountListener);
 
 			mDatastore = DbxDatastore.openDefault(mAccount);
-			mDatastore.addSyncStatusListener(mDatastoreListener);
+			// mDatastore.addSyncStatusListener(mDatastoreListener);
 			return;
 		} else {
 			mAccount = mDbxAcctMgr.getLinkedAccount();
 			mAccount.addListener(mAccountListener);
 			if (null != mDatastore) {
-				if (!mDatastore.isOpen()) 
+				if (!mDatastore.isOpen())
 					mDatastore = DbxDatastore.openDefault(mAccount);
-			} else 
+			} else
 				mDatastore = DbxDatastore.openDefault(mAccount);
+			
 		}
-		
+
 		mDbHelper.open();
-		mDatastore.removeSyncStatusListener(mDatastoreListener);
+		// mDatastore.removeSyncStatusListener(mDatastoreListener);
 
 		mTable = mDatastore.getTable("notes");
 		mDatastore.sync();
-		
+
 		DbxTable.QueryResult allResults = mTable.query();
 		Iterator<DbxRecord> allResultIter = allResults.iterator();
 		while (allResultIter.hasNext()) {
 			DbxRecord tempAllQuery = allResultIter.next();
-			if (!mDbHelper.hasDropboxid(tempAllQuery.getId())) {
+			if (true) {
 				long tempRowID = mDbHelper.createNote(tempAllQuery.getString("title"),
-														tempAllQuery.getString("body"),
-														tempAllQuery.getDouble("latitude"),
-														tempAllQuery.getDouble("longitude"),
-														tempAllQuery.getString("location"),
-														tempAllQuery.getString("checklist"),
-														tempAllQuery.getId());
+						tempAllQuery.getString("body"),
+						tempAllQuery.getDouble("latitude"),
+						tempAllQuery.getDouble("longitude"),
+						tempAllQuery.getString("location"),
+						tempAllQuery.getString("checklist"),
+						tempAllQuery.getId(),
+						mDatastore.getId());
 				tempAllQuery.set("ID", tempRowID);
 			}
 		}
@@ -189,8 +208,9 @@ public class NotesDropbox {
 				DbxTable.QueryResult results = mTable.query(queryParams);
 				if (results.count() > 0) {
 					DbxRecord firstResult = results.iterator().next();
-					if (mDbHelper.getDropboxid(cursor.getLong(0)).matches(firstResult.getId())) 
+					if (mDbHelper.getDropboxid(cursor.getLong(0)).matches(firstResult.getId()))
 						firstResult.setAll(noteFields);
+
 				} else {
 					DbxRecord tempRecord = mTable.insert(noteFields);
 					mDbHelper.updateDropboxid(cursor.getLong(0), tempRecord.getId());
@@ -200,11 +220,19 @@ public class NotesDropbox {
 
 		mDatastore.sync();
 		mDbHelper.close();
-		mDatastore.close();
+		// mDatastore.close();
 
 		MainActivity myActivity = (MainActivity) mContext;
 		myActivity.fetchAllNotes();
 
+	}
+
+	public void dropboxPause() {
+		if (mDatastore != null) {
+			mDatastore.removeSyncStatusListener(this);
+			mDatastore.close();
+			mDatastore = null;
+		}
 	}
 
 }

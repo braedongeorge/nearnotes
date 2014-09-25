@@ -16,6 +16,7 @@
 
 package com.nearnotes;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -29,14 +30,11 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.support.v4.app.DialogFragment;
-import android.telephony.PhoneStateListener;
-import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -44,6 +42,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+@SuppressLint("InflateParams")
 public class NoteLocation extends DialogFragment implements LocationListener {
 	private static final int NOTE_EDIT = 1;
 	private static final int NOTE_LIST = 2;
@@ -179,17 +178,6 @@ public class NoteLocation extends DialogFragment implements LocationListener {
 
 	}
 
-	private PhoneStateListener mPhoneListener = new PhoneStateListener() {
-	    @Override
-	    public void onServiceStateChanged(ServiceState serviceState) {
-	        Log.d("Phone state", "Phone State: " + serviceState.getState());
-	        mServiceState = serviceState.getState();
- 
-	        super.onServiceStateChanged(serviceState);
-	    }
-	};
-	
-	
 	private DialogInterface.OnClickListener cancelListener = new DialogInterface.OnClickListener() {
 		@Override
 		public void onClick(DialogInterface dialog, int id) {

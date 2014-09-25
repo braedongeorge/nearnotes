@@ -3,23 +3,30 @@
 
     <string name="app_name_new">NearNotes</string>
     <string name="title">NearNotes</string>
-    
+
     <!-- All Notes Strings -->
     <string name="no_notes">No Notes Yet - To add a note, press the + button</string>
     <string name="spacer">&#160;-&#160;</string>
     <string name="new_tooltip">New Note</string>
     <string name="refresh_tooltip">Refresh Location</string>
-    
-    
+
     <!-- Note Edit Strings -->
     <!-- Action Bar -->
-    	<string name="menu">Menu</string>
-    	<string name="done">Done</string>
-    	 <string name="togglechecklist">Toggle Checklist</string>
-    	<string name="clearnote">Clear Note</string>
-    	<string name="deletenote">Delete Note</string>
-   		<string name="titles">Title:</string>
-    <!--  End Action Bar -->
+    <string name="menu">Menu</string>
+    <string name="done">Done</string>
+    <string name="togglechecklist">Toggle Checklist</string>
+    <string name="clearnote">Clear Note</string>
+    <string name="deletenote">Delete Note</string>
+    <string name="sharenote">Share Note</string>
+    <string name="titles">Title:</string>
+
+    <string-array name="role_array">
+        <item>None</item>
+        <item>Viewer</item>
+        <item>Editor</item>
+    </string-array>
+
+    <!-- End Action Bar -->
     <string name="edit_note">NearNotes</string>
     <string name="location">Location:</string>
     <string name="location_icon_desc">location icon</string>
@@ -28,12 +35,11 @@
     <string name="enter_notes">Enter Notes</string>
     <string name="enter_location">Enter Location</string>
     <string name="enter_title">(Optional)</string>
-    
-    
-    <!--  Contextual Action Bar -->
+
+    <!-- Contextual Action Bar -->
     <string name="cab_select_all">select all</string>
     <string name="cab_delete">delete</string>
-    
+
     <!-- Location Dialog -->
     <string name="dialog_location_finding_note_network">Finding Nearest Note (Network)..</string>
     <string name="dialog_location_updating_note_network">Updating Location (Network)..</string>
@@ -44,7 +50,7 @@
     <string name="dialog_location_updating_note_gps">Updating Location (GPS)..</string>
     <string name="dialog_location_only_gps_message">GPS is the only location service enabled. Click settings to enable other location services</string>
     <string name="dialog_location_button_settings">Change location settings</string>
-    
+
     <!-- Settings Page Strings -->
     <string name="pref_location_title">Location Settings</string>
     <string name="pref_title_ignore_gps">Use GPS</string>
@@ -56,58 +62,56 @@
     <string name="pref_title_checklist_default">Checklist finished - default action</string>
     <string name="pref_summary_checklist_default">Use a default action when all items are checked</string>
     <string name="pref_checklist_finished">\t \t Choose your default action</string>
+
     <string-array name="check_array_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>
     </string-array>
-    
-  
-    
-  	<!-- Checklist finished dialog -->
+
+    <!-- Checklist finished dialog -->
     <string name="checkfinished">Checklist Finished</string>
+
     <string-array name="check_array">
-        	<item>Clear Note</item>
-        	<item>Delete Note</item>
-        	<item>Do Nothing</item>
+        <item>Clear Note</item>
+        <item>Delete Note</item>
+        <item>Do Nothing</item>
     </string-array>
+
     <string name="alwayscheck">Always do this</string>
     <string name="oncecheck">Just Once</string>
-    
 
     <!-- Generic String -->
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
-    
+
     <!-- Automatic checklist finished dialog -->
-   	<string name="checkfinished_clearnote">Clear Note?</string>
+    <string name="checkfinished_clearnote">Clear Note?</string>
     <string name="checkfinished_deletenote">Delete Note?</string>
-   
     <string name="checkfinished_message">To change default action click settings.</string>
     <string name="dialog_checklist_settings">Settings</string>
-    
-	<!-- Drawer Menu Array -->
-	<string name="drawer_open">Open navigation drawer</string>
+
+    <!-- Drawer Menu Array -->
+    <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+
     <string-array name="drawer_menu_array">
         <item>Nearest Note</item>
         <item>All Notes</item>
-        <item>Link your Dropbox</item>
+        <item>Sync Dropbox</item>
         <item>Settings</item>
     </string-array>
+
     <string name="sync_dropbox">Sync your notes with Dropbox</string>
-    
-    
-    
- 
+
     <!-- Overflow Menu strings -->
     <string name="check_clear">Are you sure you want to clear note?</string>
     <string name="check_delete">Are you sure you want to delete?</string>
     <string name="check_not_saved">Cannot delete - Note has not been saved yet</string>
-    
-    <!--  Text color for actionbar theme -->
+
+    <!-- Text color for actionbar theme -->
     <color name="actionbar_text">#FFF</color>
-    
+
     <!-- Background color for theme -->
     <color name="backgroundDefault">#FFFFB2</color>
 

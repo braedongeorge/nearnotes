@@ -46,6 +46,7 @@ public class NotesDbAdapter {
 	public static final String KEY_LOCATION = "location";
 	public static final String KEY_CHECK = "checklist";
 	public static final String KEY_DROPBOX = "dropboxid";
+	public static final String KEY_DATASTORE = "datastoreid";
 	public static final String KEY_SETTINGS_ONTOP = "ontop";
 
 	private static final String TAG = "NotesDbAdapter";
@@ -56,7 +57,7 @@ public class NotesDbAdapter {
 	 * Database creation sql statement
 	 */
 	private static final String DATABASE_CREATE = "create table notes (_id integer primary key autoincrement, "
-			+ "title text not null, body text not null, latitude real not null, longitude real not null, location text not null, checklist text not null, dropboxid text not null);";
+			+ "title text not null, body text not null, latitude real not null, longitude real not null, location text not null, checklist text not null, dropboxid text not null, datastoreid text not null);";
 
 	private static final String DATABASE_CREATE_SETTINGS = "create table settings (_id integer primary key autoincrement, "
 			+ "ontop integer);";
@@ -64,7 +65,7 @@ public class NotesDbAdapter {
 	private static final String DATABASE_NAME = "data";
 	private static final String DATABASE_TABLE = "notes";
 	private static final String DATABASE_TABLE_SETTINGS = "settings";
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 6;
 
 	private final Context mCtx;
 
@@ -89,6 +90,8 @@ public class NotesDbAdapter {
 				db.execSQL("ALTER TABLE notes ADD COLUMN checklist text DEFAULT 'false'");
 			} else if (oldVersion == 4) {
 				db.execSQL("ALTER TABLE notes ADD COLUMN dropboxid text DEFAULT ''");
+			} else if (oldVersion == 5) {
+				db.execSQL("ALTER TABLE notes ADD COLUMN datastoreid text DEFAULT 'default'");
 			}
 		}
 	}
@@ -136,7 +139,7 @@ public class NotesDbAdapter {
 	 * @return rowId or -1 if failed
 	 */
 	public long createNote(String title, String body, double lat, double lng,
-			String location, String checklist, String dropboxid) {
+			String location, String checklist, String dropboxid, String datastoreid) {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_TITLE, title);
 		initialValues.put(KEY_BODY, body);
@@ -145,6 +148,7 @@ public class NotesDbAdapter {
 		initialValues.put(KEY_LOCATION, location);
 		initialValues.put(KEY_CHECK, checklist);
 		initialValues.put(KEY_DROPBOX, dropboxid);
+		initialValues.put(KEY_DATASTORE, datastoreid);
 		long idsql = -1;
 		try {
 			idsql = mDb.insertOrThrow(DATABASE_TABLE, null, initialValues);
@@ -187,7 +191,7 @@ public class NotesDbAdapter {
 		String fudge = String.valueOf(Math.pow(
 				Math.cos(Math.toRadians(latitude)), 2));
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
-				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX }, null, null, null,
+				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, null, null, null,
 				null, "(" + mlatitude + " - latitude) * (" + mlatitude
 						+ " - latitude) + (" + mlongitude + " - longitude) * ("
 						+ mlongitude + " - longitude) * " + fudge);
@@ -207,16 +211,15 @@ public class NotesDbAdapter {
 
 		Cursor mCursor =
 
-		mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
-				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX }, KEY_ROWID + "="
-				+ rowId, null, null, null, null, null);
+				mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
+						KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, KEY_ROWID + "="
+						+ rowId, null, null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
 		}
 		return mCursor;
 
 	}
-	
 
 	/**
 	 * Update the note using the details provided. The note to be updated is
@@ -259,64 +262,43 @@ public class NotesDbAdapter {
 			return false;
 
 	}
-	
+
 	public boolean updateDropboxid(long rowId, String dropboxid) {
 		ContentValues args = new ContentValues();
 		args.put(KEY_DROPBOX, dropboxid);
-		
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}
 	
+	
+	public boolean updateDatastoreid(long rowId, String datastoreid) {
+		ContentValues args = new ContentValues();
+		args.put(KEY_DATASTORE, datastoreid);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+		
+	}
+
 	public String getDropboxid(long rowId) {
 		Cursor mCursor =
 
 				mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_DROPBOX }, KEY_ROWID + "="
 						+ rowId, null, null, null, null, null);
-				if (mCursor != null) {
-					mCursor.moveToFirst();
-					Log.d("tag",mCursor.getString(1));
-					return mCursor.getString(1);
-				}
-				
-				return "";
-				
-		
-
-		
-	}
-	
-	
-	public boolean hasDropboxid(String id) {
-		try {
-			Cursor mCursor =
-		
-
-				mDb.query(true, DATABASE_TABLE, new String[] { KEY_DROPBOX }, KEY_DROPBOX + "="
-						+ "'" + id + "'", null, null, null, null, null);
-				if (mCursor.getCount() > 0) {
-					mCursor.moveToFirst();
-					Log.d("mCursor",mCursor.getString(0));
-					return true;
-				}
-			
-		} catch (SQLiteException exception) {
-		
-		
-		
-				
-				return false;
+		if (mCursor != null) {
+			mCursor.moveToFirst();
+			Log.d("tag", mCursor.getString(1));
+			return mCursor.getString(1);
 		}
-		return false;		
-		
 
-		
+		return "";
+
 	}
-	
-	
-	
-	
-	
+
+	public Cursor hasDropboxid(String id) throws SQLException  {
+		return mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
+							KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, KEY_DROPBOX + "="
+							+ "'" + id + "'", null, null, null, null, null);
+	}
 
 	public void removeSetting() {
 		Cursor mCursor = mDb.query(true, DATABASE_TABLE_SETTINGS, new String[] {
@@ -337,8 +319,8 @@ public class NotesDbAdapter {
 		int rowResult = -1;
 		Cursor mCursor =
 
-		mDb.query(true, DATABASE_TABLE_SETTINGS, new String[] { KEY_ROWID,
-				KEY_SETTINGS_ONTOP }, null, null, null, null, null, null);
+				mDb.query(true, DATABASE_TABLE_SETTINGS, new String[] { KEY_ROWID,
+						KEY_SETTINGS_ONTOP }, null, null, null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
 			rowResult = mCursor.getInt(1);

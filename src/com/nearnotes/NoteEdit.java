@@ -33,11 +33,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.R.menu;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Address;
@@ -66,7 +63,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Filter;
@@ -96,7 +92,6 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	public boolean mNetworkTask = false;
 	private double mLatitude;
 	private boolean mChecklist = false;
-	private boolean mIgnoreLocation = false;
 	private String checkString;
 	private CheckBox mCheckBox;
 	private List<String> mLines = new ArrayList<String>();
@@ -815,7 +810,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				
 				return false;
 			}
-			long id = mDbHelper.createNote(title, body, latitude, longitude, location, listString, "");
+			long id = mDbHelper.createNote(title, body, latitude, longitude, location, listString, "","");
 			if (id > 0) {
 				mRowId = id;
 				if (mCheckBox.isChecked()) {

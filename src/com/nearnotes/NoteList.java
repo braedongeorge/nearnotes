@@ -17,10 +17,7 @@ package com.nearnotes;
 
 import java.util.ArrayList;
 
-import com.dropbox.sync.android.DbxException;
-
 import android.app.Activity;
-import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -33,13 +30,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AbsListView.MultiChoiceModeListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.dropbox.sync.android.DbxException;
 
 public class NoteList extends ListFragment {
 	private NotesDbAdapter mDbHelper;
@@ -85,7 +83,7 @@ public class NoteList extends ListFragment {
 		mDbHelper = new NotesDbAdapter(getActivity()); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
 
-		mNotesDropbox = new NotesDropbox(getActivity(),getActivity().getApplicationContext());
+		// mNotesDropbox = new NotesDropbox(getActivity(),getActivity().getApplicationContext());
 		
 		Bundle bundle = getArguments();
 		mLongitude = bundle.getDouble("longitude");
@@ -127,15 +125,15 @@ public class NoteList extends ListFragment {
 				switch (item.getItemId()) {
 
 				case R.id.context_delete:
-					for (Long s : mSelectedIds) {
+
 						try {
-							mNotesDropbox.deleteDropboxNote(s);
+							MainActivity myActivity = (MainActivity) getActivity();
+							myActivity.deleteDropboxNote(mSelectedIds);
 						} catch (DbxException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						
-					}
+
 					nr = 0;
 					mAdapter.clearSelection();
 					fillData(mLongitude, mLatitude);
