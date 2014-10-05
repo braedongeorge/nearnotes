@@ -17,7 +17,6 @@
 package com.nearnotes;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -53,6 +52,7 @@ import android.widget.Toast;
 import com.dropbox.sync.android.DbxAccount;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxDatastore;
+import com.dropbox.sync.android.DbxDatastore.Role;
 import com.dropbox.sync.android.DbxDatastoreInfo;
 import com.dropbox.sync.android.DbxDatastoreManager;
 import com.dropbox.sync.android.DbxException;
@@ -62,7 +62,7 @@ import com.dropbox.sync.android.DbxRecord;
 import com.dropbox.sync.android.DbxTable;
 
 public class MainActivity extends FragmentActivity implements NoteList.OnNoteSelectedListener, NoteEdit.noteEditListener, NoteLocation.NoteLocationListener, NoteSettings.noteSettingsListener, ChecklistDialog.CheckDialogListener,
-		OverflowDialog.OverflowDialogListener, DbxDatastore.SyncStatusListener, DbxDatastoreManager.ListListener {
+		OverflowDialog.OverflowDialogListener, DbxDatastore.SyncStatusListener, DbxDatastoreManager.ListListener, DatastoreDialog.DatastoreDialogListener, ShareDialog.ShareDialogListener {
 
 	private static final int NOTE_EDIT = 1;
 	private static final int NOTE_LIST = 2;
@@ -96,12 +96,10 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	private DbxAccountManager mAccountManager;
 	private DbxAccount mAccount;
 	private int mFragType = 0;
-	private boolean mIncoming = false;
-	private Context mContext;
 
 	private boolean mOnlyOrientation = false;
 	private DbxDatastore mDatastore;
-	private Set<DbxDatastore> mDatastoreMap;
+	private ArrayList<DbxDatastore> mDatastoreMap;
 	private DbxDatastoreManager mDatastoreManager;
 	private boolean mFirstRun = false;
 
@@ -110,13 +108,12 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		mContext = this;
 		mDbHelper = new NotesDbAdapter(this); // Create new custom database class for sqlite and pass the current context as a variable
 		mDbHelper.open(); // Gets the writable database
 
 		mAccountManager = DbxAccountManager.getInstance(getApplicationContext(), APP_KEY, APP_SECRET);
 
-		mDatastoreMap = new HashSet<DbxDatastore>();
+		mDatastoreMap = new ArrayList<DbxDatastore>();
 
 		if (mAccountManager.hasLinkedAccount()) {
 			mAccount = mAccountManager.getLinkedAccount();
@@ -131,6 +128,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 					} else {
 						if (null != info.title) {
 							if (info.title.startsWith("shared_note_")) {
+								Log.e("ADDED DATASTORE onCreate2", info.id);
 								mDatastoreMap.add(mDatastoreManager.openDatastore(info.id));
 							}
 						}
@@ -173,18 +171,58 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			try {
 				DbxDatastore store = mDatastoreManager.openDatastore(intent.getData().getFragment());
 				store.addSyncStatusListener(this);
+				Log.e("ADDED DATASTORE on Open via url", store.getId());
 				mDatastoreMap.add(store);
 
 			} catch (DbxException e) {
 				e.printStackTrace();
 			}
 			Toast.makeText(this, intent.getData().getFragment().toString(), Toast.LENGTH_SHORT).show();
-			// Log.e("get datastore id",intent.getData().getFragment());
 		} else {
 			// This means we were opened from another activity, which will pass the DSID as an extra.
 			//  dsid = intent.getStringExtra("com.dropbox.examples.lists.DSID");
 		}
 
+	}
+
+	public void onDatastoreSelected(DbxRecord record) {
+		if (null != record) {
+			mDbHelper.createNote(record.getString("title"),
+					record.getString("body"),
+					record.getDouble("latitude"),
+					record.getDouble("longitude"),
+					record.getString("location"),
+					record.getString("checklist"),
+					"",
+					"");
+			populateDropbox(notes(), false);
+		} else {
+			populateDropbox(notes(), true);
+		}
+		/*
+		 * try { Cursor cursor = mDbHelper.fetchAllNotes(this, mLongitude,
+		 * mLatitude); DbxTable table = mDatastore.getTable("notes"); if
+		 * (cursor.moveToFirst()) { while (!cursor.isAfterLast()) { boolean
+		 * change = true; Set<DbxDatastoreInfo> info1 =
+		 * mDatastoreManager.listDatastores(); for (DbxDatastoreInfo i : info1)
+		 * { Log.e(i.id, "Database in onDatastoreListChange"); if
+		 * (mDbHelper.getDatastoreid(cursor.getLong(0)).matches(i.id) ||
+		 * mDbHelper.getDatastoreid(cursor.getLong(0)).isEmpty()) { change =
+		 * false; } } if (change) { DbxFields noteFields = new DbxFields()
+		 * .set("ID", cursor.getLong(0)) .set("title", cursor.getString(1))
+		 * .set("body", cursor.getString(2)) .set("latitude",
+		 * cursor.getDouble(3)) .set("longitude", cursor.getDouble(4))
+		 * .set("location", cursor.getString(5)) .set("checklist",
+		 * cursor.getString(6));
+		 * 
+		 * DbxRecord insertRecord = table.insert(noteFields);
+		 * mDbHelper.updateDropboxid(cursor.getLong(0), insertRecord.getId());
+		 * mDbHelper.updateDatastoreid(cursor.getLong(0), mDatastore.getId());
+		 * mDatastore.sync();
+		 * 
+		 * } cursor.moveToNext(); } } } catch (DbxException e) {
+		 * e.printStackTrace(); }
+		 */
 	}
 
 	/**
@@ -203,12 +241,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		case SELECTED_DELETE:
 			ArrayList<Long> arraylist = new ArrayList<Long>();
 			arraylist.add(rowId);
-			try {
-				deleteDropboxNote(arraylist);
-			} catch (DbxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			deleteDropboxNote(arraylist);
 			mDbHelper.deleteNote(rowId);
 			if (mDbHelper.fetchSetting() == rowId)
 				mDbHelper.removeSetting();
@@ -226,22 +259,26 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 	}
 
 	private DbxDatastore.SyncStatusListener mFirstRunListener = new DbxDatastore.SyncStatusListener() {
+
 		@Override
 		public void onDatastoreStatusChange(DbxDatastore store) {
+			Log.w(store.getId(),"Is current using mFirstRunListener");
 			if (!store.getSyncStatus().isDownloading && !store.getSyncStatus().hasIncoming) {
+				mDatastore.removeSyncStatusListener(mFirstRunListener);
+				mDatastore.addSyncStatusListener(MainActivity.this);
 				try {
-				    checkRemoteDeletions(mDatastore.sync());
+					checkRemoteDeletions(mDatastore.sync());
 					Set<DbxDatastoreInfo> dataList = mDatastoreManager.listDatastores();
 					for (DbxDatastoreInfo info : dataList) {
+						Log.e(info.id, "List datastores in mFirstRunListenr");
 						if (info.id.matches(DbxDatastoreManager.DEFAULT_DATASTORE_ID)) {
-							mDatastore.removeSyncStatusListener(mFirstRunListener);
-							mDatastore.addSyncStatusListener(MainActivity.this);
-							mDatastoreMap.add(mDatastore);
+
 						} else {
 							if (null != info.title) {
 								if (info.title.startsWith("shared_note_")) {
 									DbxDatastore temp = mDatastoreManager.openDatastore(info.id);
 									temp.addSyncStatusListener(MainActivity.this);
+									Log.e("ADDED DATASTORE mFirstRunListener", temp.getId());
 									mDatastoreMap.add(temp);
 								}
 							}
@@ -253,13 +290,27 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 					e.printStackTrace();
 				}
 			}
-			
+
 			if (store.getSyncStatus().hasIncoming) {
 				try {
 					store.sync();
 				} catch (DbxException e) {
 					e.printStackTrace();
 				}
+			}
+		}
+	};
+	
+	private DbxDatastore.SyncStatusListener addListener = new DbxDatastore.SyncStatusListener() {
+
+		@Override
+		public void onDatastoreStatusChange(DbxDatastore store) {
+			Log.w(store.getId(),"Is current using addListener");
+			if (!store.getSyncStatus().isDownloading && !store.getSyncStatus().hasIncoming) {
+				mDatastore.removeSyncStatusListener(addListener);
+				mDatastore.addSyncStatusListener(MainActivity.this);
+				
+				
 			}
 		}
 	};
@@ -270,24 +321,66 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 
 	@Override
 	public void onDatastoreListChange(DbxDatastoreManager manager) {
+
 		try {
+
 			Set<DbxDatastoreInfo> info = manager.listDatastores();
 			for (DbxDatastoreInfo i : info) {
-				boolean change = true;
+				Log.e(i.id, "Database in onDatastoreListChange");
+				boolean newRemote = true;
 				for (DbxDatastore store : mDatastoreMap) {
+
 					if (i.id.matches(store.getId())) {
-						change = false;
+						newRemote = false;
 					}
 				}
-				if (change) {
-					mDatastoreMap.add(manager.openDatastore(i.id));
+				if (newRemote) {
+					Log.e("ADDED DATASTORE onDatastoreListChange", i.id);
+					DbxDatastore store = manager.openDatastore(i.id);
+					store.addSyncStatusListener(addListener);
+					mDatastoreMap.add(store);
+
 					Toast.makeText(this, "New Datastore Add: " + i.id, Toast.LENGTH_SHORT).show();
 				}
 			}
+			Iterator<DbxDatastore> storeIter = mDatastoreMap.iterator();
+			while (storeIter.hasNext()) {
+				DbxDatastore store = storeIter.next();
+				boolean deleteRemote = true;
+				for (DbxDatastoreInfo i : info) {
+					if (store.getId().matches(i.id)) {
+						deleteRemote = false;
+					}
+
+				}
+				if (deleteRemote) {
+					DbxTable.QueryResult results = store.getTable("notes").query();
+					Iterator<DbxRecord> iterator = results.iterator();
+					Log.e("Delete Remote Trigger",store.getSyncStatus().toString());
+					while (iterator.hasNext()) {
+						DbxRecord tempRecord = iterator.next();
+						DatastoreDialog datastoreDialog = new DatastoreDialog(tempRecord);
+						Cursor recordCursor = mDbHelper.hasDropboxid(tempRecord.getId());
+						if (recordCursor.moveToFirst()) {
+							mDbHelper.deleteNote(recordCursor.getLong(0));
+						}
+
+						Log.e(store.getId(), "Store doesnt exist on the server - do something");
+						
+						if (getFragmentManager().findFragmentByTag("DatastoreDialog") == null && !store.getEffectiveRole().equals(Role.OWNER))
+							datastoreDialog.show(getSupportFragmentManager(), "DatastoreDialog");
+
+					}
+					storeIter.remove();
+
+				}
+			}
+			populateDropbox(notes(), true);
+			// populateDropbox(notes(), false);
 		} catch (DbxException e) {
 			e.printStackTrace();
 		}
-
+		invalidateOptionsMenu();
 	}
 
 	private void checkRemoteDeletions(Map<String, Set<DbxRecord>> changes) throws DbxException {
@@ -305,8 +398,9 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 
 	@Override
 	public void onDatastoreStatusChange(DbxDatastore store) {
-		Toast.makeText(this, store.getId() + ": " + store.getSyncStatus().toString(), Toast.LENGTH_SHORT).show();
-		if (!store.getSyncStatus().isDownloading && !store.getSyncStatus().hasIncoming && !store.getSyncStatus().isUploading && !store.getSyncStatus().hasOutgoing) {
+		Log.e(store.getId(), store.getSyncStatus().toString());
+		Toast.makeText(this, store.getSyncStatus().toString(), Toast.LENGTH_SHORT).show();
+		if (store.getSyncStatus().isConnected && !store.getSyncStatus().isDownloading && !store.getSyncStatus().hasIncoming && !store.getSyncStatus().isUploading && !store.getSyncStatus().hasOutgoing) {
 			if (store.isOpen()) {
 				Set<DbxTable> tables = store.getTables();
 				int counter = 0;
@@ -318,12 +412,12 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 				}
 				Log.e(String.valueOf(counter), "counter");
 				if (counter == 0 && !store.getId().matches(DbxDatastoreManager.DEFAULT_DATASTORE_ID)) {
+					Log.e(store.getId(), "oh shit its closing store");
 					store.close();
 					try {
 						mDatastoreMap.remove(store);
 						mDatastoreManager.deleteDatastore(store.getId());
 					} catch (DbxException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					return;
@@ -333,18 +427,16 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 
 		if (store.getSyncStatus().hasIncoming) {
 			try {
-				for (DbxDatastore store1 : mDatastoreMap) {
-					Map<String, Set<DbxRecord>> changes = store1.sync();
-					if (!changes.isEmpty()) {
-						Set<DbxRecord> mySet = changes.get("notes");
-						if (!mySet.isEmpty()) {
-							ArrayList<String> deleteList = new ArrayList<String>();
-							for (DbxRecord s : mySet) {
-								if (s.isDeleted())
-									deleteList.add(s.getId());
-							}
-							deleteRemoteNote(deleteList);
+				Map<String, Set<DbxRecord>> changes = store.sync();
+				if (!changes.isEmpty()) {
+					Set<DbxRecord> mySet = changes.get("notes");
+					if (null != mySet) {
+						ArrayList<String> deleteList = new ArrayList<String>();
+						for (DbxRecord s : mySet) {
+							if (s.isDeleted())
+								deleteList.add(s.getId());
 						}
+						deleteRemoteNote(deleteList);
 					}
 				}
 				populateDropbox(mDbHelper.fetchAllNotes(this, mLongitude, mLatitude), true);
@@ -354,17 +446,33 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		}
 	}
 
-	public void populateDropbox(Cursor cursor, boolean incoming) throws DbxException {
+	public boolean populateDropbox(Cursor cursor, boolean incoming) {
 		for (DbxDatastore store : mDatastoreMap) {
-			syncingNotes(cursor, store, incoming);
+			
+			try {
+				store.sync();
+				Log.e(store.getId(), "Is owner?" + store.getEffectiveRole().equals(Role.OWNER));
+				syncingNotes(cursor, store, incoming);
+			} catch (DbxException e) {
+				e.printStackTrace();
+				return false;
+			}
 		}
+		Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+		if (fragment instanceof NoteList) {
+			fetchAllNotes();
+		}
+
+		return true;
 	}
 
 	public void syncingNotes(Cursor cursor, DbxDatastore store, boolean incoming) throws DbxException {
+		Log.e("Running syncingNotes", String.valueOf(incoming));
 		DbxTable table = store.getTable("notes");
 
 		if (incoming) {
 			DbxTable.QueryResult results = table.query();
+			Log.e("INCOMING",String.valueOf(results.count()));
 			Iterator<DbxRecord> iterator = results.iterator();
 			while (iterator.hasNext()) {
 				DbxRecord record = iterator.next();
@@ -387,7 +495,6 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 					}
 				}
 			}
-			fetchAllNotes();
 		}
 		else {
 			if (cursor.moveToFirst()) {
@@ -428,11 +535,10 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 					cursor.moveToNext();
 				}
 			}
-			fetchAllNotes();
 		}
 	}
 
-	public void deleteDropboxNote(ArrayList<Long> deleteList) throws DbxException {
+	public void deleteDropboxNote(ArrayList<Long> deleteList) {
 		for (long s : deleteList) {
 			if (!mAccountManager.hasLinkedAccount()) {
 				mDbHelper.deleteNote(s);
@@ -444,14 +550,19 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 				Cursor tempNote = mDbHelper.fetchNote(s);
 				for (DbxDatastore store : mDatastoreMap) {
 					DbxTable table = store.getTable("notes");
-					
 
 					if (tempNote.moveToFirst()) {
 
 						if (tempNote.getString(8).matches(store.getId()) || (tempNote.getString(8).isEmpty() && store.getId().matches("default"))) {
-							DbxRecord record = table.get(tempNote.getString(7));
-							if (record != null) {
-								record.deleteRecord();
+							DbxRecord record;
+							try {
+								record = table.get(tempNote.getString(7));
+								if (record != null) {
+									record.deleteRecord();
+								}
+							} catch (DbxException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
 							}
 
 							mDbHelper.deleteNote(s);
@@ -460,12 +571,16 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 
 						}
 					}
-					
 
 				}
 
 				for (DbxDatastore store : mDatastoreMap) {
-					store.sync();
+					try {
+						store.sync();
+					} catch (DbxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				tempNote.close();
 			}
@@ -553,7 +668,10 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 				try {
 					mAccount = mAccountManager.getLinkedAccount();
 					mDatastoreManager = DbxDatastoreManager.forAccount(mAccountManager.getLinkedAccount());
+					mDatastoreManager.addListListener(this);
 					mDatastore = mDatastoreManager.openDefaultDatastore();
+					Log.e("ADDED DATASTORE onActivityResult", mDatastore.getId());
+					mDatastoreMap.add(mDatastore);
 					mDatastore.addSyncStatusListener(mFirstRunListener);
 					// populateDropbox(notes(),true);
 					mDatastore.sync();
@@ -670,6 +788,7 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 					mDrawerAdapter.notifyDataSetChanged();
 					mDatastore.close();
 					mAccountManager.getLinkedAccount().unlink();
+					mDatastoreMap.clear();
 					mDatastore = null;
 				} else
 					mAccountManager.startLink(this, REQUEST_LINK_TO_DBX);
@@ -684,25 +803,33 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 		mDrawerLayout.closeDrawer(mDrawerList);
 	}
 
-	public void replaceFragment(Fragment newFragment, Bundle bundle) {
-		newFragment.setArguments(bundle);
-		FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
-		transaction1.replace(R.id.fragment_container, newFragment);
-		transaction1.addToBackStack(null);
-		transaction1.commit();
+	public void replaceFragment(Fragment fragment, Bundle bundle) {
+
+		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+		if (fragment instanceof NoteEdit) {
+			NoteEdit customFragment = (NoteEdit) fragment;
+			customFragment.setArguments(bundle);
+			transaction.replace(R.id.fragment_container, customFragment);
+		} else {
+			NoteList customFragment = (NoteList) fragment;
+			customFragment.setArguments(bundle);
+			transaction.replace(R.id.fragment_container, customFragment);
+		}
+
+		transaction.addToBackStack(null);
+		transaction.commit();
 
 	}
 
 	public boolean fetchFirstNote() {
 
-		Cursor notesCursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);
-		if (notesCursor.getCount() > 0) {
-			notesCursor.moveToFirst();
-			NoteEdit newFragment1 = new NoteEdit();
+		Cursor cursor = mDbHelper.fetchAllNotes(this, mLongitude, mLatitude);
+		if (cursor.moveToFirst()) {
 
-			Bundle newBundle = new Bundle();
-			newBundle.putLong(NotesDbAdapter.KEY_ROWID, notesCursor.getLong(0));
-			replaceFragment(newFragment1, newBundle);
+			NoteEdit noteEdit = new NoteEdit();
+			Bundle bundle = new Bundle();
+			bundle.putLong(NotesDbAdapter.KEY_ROWID, cursor.getLong(cursor.getColumnIndexOrThrow(NotesDbAdapter.KEY_ROWID)));
+			replaceFragment(noteEdit, bundle);
 
 			return true;
 		} else {
@@ -734,6 +861,16 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			menu.findItem(R.id.action_new).setVisible(false);
 			menu.findItem(R.id.action_done).setVisible(true);
 			menu.findItem(R.id.action_location).setVisible(false);
+			Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+			if (fragment instanceof NoteEdit) {
+				NoteEdit noteEdit = (NoteEdit) fragment;
+				if (noteEdit.mRowId != null) {
+					String tempstoreId = mDbHelper.getDatastoreid(noteEdit.mRowId);
+					if (tempstoreId.startsWith(".")) {
+						menu.findItem(R.id.action_sub_share).setTitle("Manage share");
+					}
+				}
+			}
 			menu.findItem(R.id.action_overflow).setVisible(true);
 			break;
 		case NOTE_LIST:
@@ -743,6 +880,12 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			menu.findItem(R.id.action_overflow).setVisible(false);
 			break;
 		case NOTE_SETTINGS:
+			menu.findItem(R.id.action_new).setVisible(false);
+			menu.findItem(R.id.action_done).setVisible(false);
+			menu.findItem(R.id.action_location).setVisible(false);
+			menu.findItem(R.id.action_overflow).setVisible(false);
+			break;
+		default:
 			menu.findItem(R.id.action_new).setVisible(false);
 			menu.findItem(R.id.action_done).setVisible(false);
 			menu.findItem(R.id.action_location).setVisible(false);
@@ -789,119 +932,190 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			return true;
 		}
 
-		// Handle presses on the action bar items
+		Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+		NoteEdit noteEdit = new NoteEdit();
+		if (fragment instanceof NoteEdit) {
+			noteEdit = (NoteEdit) fragment;
+		}
+		OverflowDialog overflowDialog = new OverflowDialog();
+		Bundle bundle = new Bundle();
+
 		switch (item.getItemId()) {
 		case R.id.action_new:
 			invalidateOptionsMenu();
-			NoteEdit newFragment1 = new NoteEdit();
+			bundle.putDouble("latitude", mLatitude);
+			bundle.putDouble("longitude", mLongitude);
+			replaceFragment(noteEdit, bundle);
 
-			Bundle args2 = new Bundle();
-			args2.putDouble("latitude", mLatitude);
-			args2.putDouble("longitude", mLongitude);
-			newFragment1.setArguments(args2);
-
-			FragmentTransaction transaction1 = getSupportFragmentManager().beginTransaction();
-			transaction1.replace(R.id.fragment_container, newFragment1);
-			transaction1.addToBackStack(null);
-			transaction1.commit();
 			return true;
 		case R.id.action_done:
-			NoteEdit noteFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-			if (noteFrag.mRowId != null)
-				Toast.makeText(this, "Note Saved", Toast.LENGTH_SHORT).show();
+			actionDone(true);
 
-			if (noteFrag.saveState() && !noteFrag.mNetworkTask) {
-				if (mAccountManager.hasLinkedAccount()) {
-					try {
-						populateDropbox(notes(), false);
-					} catch (DbxException e) {
-						e.printStackTrace();
-					}
-				}
-				invalidateOptionsMenu();
-				fetchAllNotes();
-
-			} else if (noteFrag.mNetworkTask) {
-				mInvalidLocationDialog = customAlert("Location Running", "Still updating location", "Cancel", "OK");
-				mInvalidLocationDialog.show();
-			} else {
-				mInvalidLocationDialog = customAlert("Location Invalid", "The location needs to be selected from the drop down list to be valid. An active internet connection is also required.", "Cancel Note", "Fix Location");
-				mInvalidLocationDialog.show();
-			}
 			return true;
 		case R.id.action_location:
+
 			if (mAccountManager.hasLinkedAccount()) {
+				
 				try {
-					populateDropbox(notes(), true);
+					Set<DbxDatastoreInfo> dataList;
+					dataList = mDatastoreManager.listDatastores();
+					// mDatastoreManager.addListListener(this);
+					for (DbxDatastoreInfo info : dataList) {
+						Log.e(info.id,"In List: with title" + info.title);
+					}
+				} catch (DbxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				
+				populateDropbox(notes(), true);
+				populateDropbox(notes(), false);
+			}
+			showDialogs(NOTE_LIST);
+
+			return true;
+		case R.id.action_sub_toggle:
+			noteEdit.toggleChecklist();
+
+			return true;
+		case R.id.action_sub_delete:
+			if (noteEdit.mRowId != null) {
+				bundle.putLong("_id", noteEdit.mRowId);
+				bundle.putInt("confirmSelection", 1);
+			} else {
+				bundle.putInt("confirmSelection", 2);
+			}
+
+			showOverflowDialog(overflowDialog, bundle);
+			return true;
+		case R.id.action_sub_clear:
+			if (noteEdit.mRowId != null) {
+				bundle.putLong("_id", noteEdit.mRowId);
+			}
+			bundle.putInt("confirmSelection", 0);
+			showOverflowDialog(overflowDialog, bundle);
+
+			return true;
+		case R.id.action_sub_share:
+			actionDone(false);
+			if (item.getTitle().toString().matches("Share Note")) {
+				try {
+					DbxDatastore store = mDatastoreManager.createDatastore();
+					store.setTitle("shared_note_" + store.getId());
+					store.setRole(DbxPrincipal.PUBLIC, DbxDatastore.Role.EDITOR);
+					DbxTable table = store.getTable("notes");
+					store.sync();
+					String oldDropboxId = mDbHelper.getDropboxid(noteEdit.mRowId);
+					DbxRecord tempRecord = table.insert(mDatastore.getTable("notes").get(oldDropboxId));
+					store.sync();
+					mDbHelper.updateDropboxid(noteEdit.mRowId, tempRecord.getId());
+					mDbHelper.updateDatastoreid(noteEdit.mRowId, store.getId());
+					DbxTable mainTable = mDatastore.getTable("notes");
+					mainTable.get(oldDropboxId).deleteRecord();
+					mDatastore.sync();
+					mDatastoreMap.add(store);
+					store.addSyncStatusListener(this);
+					Toast.makeText(this, "Successfully shared note", Toast.LENGTH_SHORT).show();
+					new ShareDialog(store, mAccount, false).show(getSupportFragmentManager(), "ShareDialog");
+					invalidateOptionsMenu();
 				} catch (DbxException e) {
 					e.printStackTrace();
 				}
-			}
-			showDialogs(NOTE_LIST);
-			return true;
-		case R.id.action_sub_toggle:
-			NoteEdit noteFrag1 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-			noteFrag1.toggleChecklist();
-			return true;
-		case R.id.action_sub_delete:
-			NoteEdit noteFrag2 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-			OverflowDialog newFragment = new OverflowDialog();
+			} else {
+				try {
 
-			Bundle args = new Bundle();
-			if (noteFrag2.mRowId != null) {
-				args.putLong("_id", noteFrag2.mRowId);
-				args.putInt("confirmSelection", 1);
-			} else
-				args.putInt("confirmSelection", 2);
+					Iterator<DbxDatastore> iter = mDatastoreMap.iterator();
+					String dataString = mDbHelper.getDatastoreid(noteEdit.mRowId);
+					String dropString = mDbHelper.getDropboxid(noteEdit.mRowId);
+					while (iter.hasNext()) {
+						DbxDatastore store = iter.next();
+						if (store.getId().matches(dataString)) {
+							if (store.getEffectiveRole().equals(Role.OWNER)) {
+								Log.e("settingRole", "none");
+								new ShareDialog(store, mAccount, true).show(getSupportFragmentManager(), "ShareDialog");
+								
+							}
 
-			newFragment.setArguments(args);
-			if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null)
-				newFragment.show(getSupportFragmentManager(), "ConfirmDialog");
-			return true;
-		case R.id.action_sub_clear:
-			NoteEdit noteFrag3 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-			OverflowDialog newFragment2 = new OverflowDialog();
+							
+						}
+					}
+					invalidateOptionsMenu();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
-			Bundle args3 = new Bundle();
-			if (noteFrag3.mRowId != null) {
-				args3.putLong("_id", noteFrag3.mRowId);
-			}
-			args3.putInt("confirmSelection", 0);
-			newFragment2.setArguments(args3);
-			if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null)
-				newFragment2.show(getSupportFragmentManager(), "ConfirmDialog");
-			return true;
-		case R.id.action_sub_share:
-			try {
-				NoteEdit noteFrag4 = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-				DbxDatastore store = mDatastoreManager.createDatastore();
-				store.setTitle("shared_note_" + store.getId());
-				store.setRole(DbxPrincipal.PUBLIC, DbxDatastore.Role.EDITOR);
-				DbxTable table = store.getTable("notes");
-				store.sync();
-				String oldDropboxId = mDbHelper.getDropboxid(noteFrag4.mRowId);
-				Log.e(oldDropboxId, "Old Dropbox Id");
-				DbxRecord tempRecord = table.insert(mDatastore.getTable("notes").get(oldDropboxId));
-				store.sync();
-				mDbHelper.updateDropboxid(noteFrag4.mRowId, tempRecord.getId());
-				mDbHelper.updateDatastoreid(noteFrag4.mRowId, store.getId());
-				DbxTable mainTable = mDatastore.getTable("notes");
-				mainTable.get(oldDropboxId).deleteRecord();
-				mDatastore.sync();
-				mDatastoreMap.add(store);
-				store.addSyncStatusListener(this);
-
-				Toast.makeText(this, store.getTitle(), Toast.LENGTH_SHORT).show();
-				new ShareDialog(store, mAccount).show(getSupportFragmentManager(), "ShareDialog");
-
-			} catch (DbxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	public void onUnshareSelected(DbxDatastore datastore) {
+
+		Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+		NoteEdit noteEdit = new NoteEdit();
+		if (fragment instanceof NoteEdit) {
+			noteEdit = (NoteEdit) fragment;
+		}
+
+		try {
+			Iterator<DbxDatastore> iter = mDatastoreMap.iterator();
+			String dataString = mDbHelper.getDatastoreid(noteEdit.mRowId);
+			String dropString = mDbHelper.getDropboxid(noteEdit.mRowId);
+			while (iter.hasNext()) {
+				DbxDatastore store = iter.next();
+				if (store.getId().matches(dataString) && store.getEffectiveRole().equals(Role.OWNER)) {
+					store.setRole(DbxPrincipal.PUBLIC, Role.NONE);
+					store.setRole(DbxPrincipal.TEAM, Role.NONE);
+					store.sync();
+					Log.e(store.getId(), store.getRole(DbxPrincipal.PUBLIC).toString());
+
+					DbxRecord record = store.getTable("notes").get(dropString);
+					DbxRecord newRecord = mDatastore.getTable("notes").insert(record);
+					Log.e(newRecord.getString("title"), newRecord.getId());
+					mDatastore.sync();
+					mDbHelper.updateDropboxid(noteEdit.mRowId, newRecord.getId());
+					mDbHelper.updateDatastoreid(noteEdit.mRowId, mDatastore.getId());
+					store.close();
+					mDatastoreManager.deleteDatastore(store.getId());
+
+					iter.remove();
+				}
+			}
+		} catch (DbxException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void showOverflowDialog(OverflowDialog dialog, Bundle bundle) {
+		dialog.setArguments(bundle);
+		if (getFragmentManager().findFragmentByTag("ConfirmDialog") == null)
+			dialog.show(getSupportFragmentManager(), "ConfirmDialog");
+	}
+
+	public void actionDone(boolean fetchNotes) {
+		NoteEdit noteFrag = (NoteEdit) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+		if (noteFrag.mRowId != null)
+			Toast.makeText(this, "Note Saved", Toast.LENGTH_SHORT).show();
+
+		if (noteFrag.saveState() && !noteFrag.mNetworkTask) {
+			if (mAccountManager.hasLinkedAccount()) {
+				populateDropbox(notes(), false);
+			}
+			invalidateOptionsMenu();
+			if (fetchNotes) {
+				fetchAllNotes();
+			}
+
+		} else if (noteFrag.mNetworkTask) {
+			mInvalidLocationDialog = customAlert("Location Running", "Still updating location", "Cancel", "OK");
+			mInvalidLocationDialog.show();
+		} else {
+			mInvalidLocationDialog = customAlert("Location Invalid", "The location needs to be selected from the drop down list to be valid. An active internet connection is also required.", "Cancel Note", "Fix Location");
+			mInvalidLocationDialog.show();
 		}
 	}
 
@@ -937,21 +1151,49 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			int settingsResult = mDbHelper.fetchSetting();
 
 			if (mAccountManager.hasLinkedAccount() && !mFirstRun) {
+
 				try {
-					for (DbxDatastore store : mDatastoreMap) {
-						if (!store.isOpen()) {
-							if (store.getId().matches(DbxDatastoreManager.DEFAULT_DATASTORE_ID)) {
-									mDatastore = mDatastoreManager.openDefaultDatastore();
-									mDatastore.addSyncStatusListener(this);
-							} else {
-									mDatastoreManager.openDatastore(store.getId());
-									store.addSyncStatusListener(this);
+					Set<DbxDatastoreInfo> dataList;
+					dataList = mDatastoreManager.listDatastores();
+
+					mDatastoreManager.addListListener(this);
+					for (DbxDatastoreInfo info : dataList) {
+						Log.e(info.id,"In List: with title" + info.title);
+						if (info.id.matches(DbxDatastoreManager.DEFAULT_DATASTORE_ID)) {
+							try {
+								
+								mDatastore = mDatastoreManager.openDefaultDatastore();
+								mDatastore.addSyncStatusListener(this);
+								mDatastoreMap.add(mDatastore);
+							} catch (DbxException e) {
+								Log.e(info.id, "already open dawg");
+								//e.printStackTrace();
+							}
+
+						} else {
+							Log.e("getting to else","yes");
+							if (null != info.title) {
+								if (info.title.startsWith("shared_note_")) {
+									try {
+										Log.e("getting to add",info.id);
+										DbxDatastore shareStore = mDatastoreManager.openDatastore(info.id);
+										shareStore.addSyncStatusListener(this);
+										shareStore.sync();
+										mDatastoreMap.add(shareStore);
+									} catch (DbxException e) {
+										Log.e(info.id, "already open dawg");
+										//e.printStackTrace();
+									}
+								}
 							}
 						}
 					}
-					populateDropbox(notesCursor, true);
-				} catch (DbxException e1) {
-					e1.printStackTrace();
+					//for (DbxDatastore stores : mDatastoreMap) {
+					//	stores.addSyncStatusListener(this);
+					//}
+					//populateDropbox(notes(), true);
+				} catch (DbxException e) {
+					e.printStackTrace();
 				}
 			}
 
@@ -977,10 +1219,37 @@ public class MainActivity extends FragmentActivity implements NoteList.OnNoteSel
 			mInvalidLocationDialog.dismiss();
 		}
 		if (mAccountManager.hasLinkedAccount()) {
+			mDatastoreManager.removeListListener(this);
 			for (DbxDatastore store : mDatastoreMap) {
 				store.removeSyncStatusListener(this);
 				store.close();
+
+			
+				
 			}
+			mDatastoreManager.
+			mDatastoreManager.removeListListener(this);
+			try {
+				mDatastoreManager.uncacheDatastore("default");
+			} catch (DbxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//			try {
+//				Set<DbxDatastoreInfo> dataList;
+//				dataList = mDatastoreManager.listDatastores();
+//
+//				for (DbxDatastoreInfo info : dataList) {
+//					mDatastoreManager.uncacheDatastore(info.id);
+//				}
+//			} catch (DbxException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			
+			
+			
+			mDatastoreMap.clear();
 		}
 
 	}

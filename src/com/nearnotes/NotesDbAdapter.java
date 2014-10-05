@@ -269,14 +269,13 @@ public class NotesDbAdapter {
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}
-	
-	
+
 	public boolean updateDatastoreid(long rowId, String datastoreid) {
 		ContentValues args = new ContentValues();
 		args.put(KEY_DATASTORE, datastoreid);
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
-		
+
 	}
 
 	public String getDropboxid(long rowId) {
@@ -294,10 +293,28 @@ public class NotesDbAdapter {
 
 	}
 
-	public Cursor hasDropboxid(String id) throws SQLException  {
+	public String getDatastoreid(long rowId) {
+		Cursor mCursor =
+
+				mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_DATASTORE }, KEY_ROWID + "="
+						+ rowId, null, null, null, null, null);
+		if (mCursor != null) {
+			if (mCursor.moveToFirst()) {
+				Log.d("tag", mCursor.getString(1));
+				return mCursor.getString(1);
+			} else {
+				return "";
+			}
+		}
+
+		return "";
+
+	}
+
+	public Cursor hasDropboxid(String id) throws SQLException {
 		return mDb.query(true, DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
-							KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, KEY_DROPBOX + "="
-							+ "'" + id + "'", null, null, null, null, null);
+				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, KEY_DROPBOX + "="
+				+ "'" + id + "'", null, null, null, null, null);
 	}
 
 	public void removeSetting() {

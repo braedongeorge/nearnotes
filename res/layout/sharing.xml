@@ -1,36 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
 
-    <TableLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
-        <TableRow android:padding="12sp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Public role" />
-            <Spinner android:id="@+id/publicRoleSpinner"
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content"
-                     android:entries="@array/role_array" />
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <TableRow android:padding="12sp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:text="Share note to anyone who receives the link:" />
         </TableRow>
-        <TableRow android:padding="12sp" android:id="@+id/teamRoleRow">
-            <TextView android:id="@+id/teamRoleLabel"
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="Team role" />
-            <Spinner android:id="@+id/teamRoleSpinner"
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content"
-                     android:entries="@array/role_array" />
+
+        <TableRow android:padding="12sp" >
+
+            <TextView
+                android:id="@+id/note_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/teamRoleRow"
+            android:padding="12sp" >
+
+            <CheckBox
+                android:id="@+id/checkbox_team"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Restrict to members of my team"
+                android:textSize="14sp" />
         </TableRow>
     </TableLayout>
 
-    <Button android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Share via email"
-            android:id="@+id/emailButton" />
-    <Button android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Share via text message"
-            android:id="@+id/smsButton" />
+    <Button
+        android:id="@+id/copyButton"
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content"
+        android:text="Copy to Clipboard" />
+
+    <Button
+        android:id="@+id/shareButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Share via another app" />
+
+    <Button
+        android:id="@+id/unShareButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Unshare"
+        android:visibility="gone" />
+
 </LinearLayout>

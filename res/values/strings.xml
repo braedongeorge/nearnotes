@@ -39,6 +39,11 @@
     <!-- Contextual Action Bar -->
     <string name="cab_select_all">select all</string>
     <string name="cab_delete">delete</string>
+    
+    <!-- Datastore Deleted Dialog -->
+    <string name="datastore_deleted_title">Note unshared by owner</string>
+    <string name="datastore_deleted_delete">Delete Note</string>
+    <string name="datastore_deleted_keep">Keep local copy</string>
 
     <!-- Location Dialog -->
     <string name="dialog_location_finding_note_network">Finding Nearest Note (Network)..</string>

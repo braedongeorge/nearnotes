@@ -84,14 +84,13 @@ public class NoteList extends ListFragment {
 		mDbHelper.open(); // Gets the writable database
 
 		// mNotesDropbox = new NotesDropbox(getActivity(),getActivity().getApplicationContext());
-		
+
 		Bundle bundle = getArguments();
 		mLongitude = bundle.getDouble("longitude");
 		mLatitude = bundle.getDouble("latitude");
 		fillData(mLongitude, mLatitude);
 		mListView = getListView();
-		
-				
+
 		getListView().setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
 
 		getListView().setMultiChoiceModeListener(new MultiChoiceModeListener() {
@@ -125,14 +124,8 @@ public class NoteList extends ListFragment {
 				switch (item.getItemId()) {
 
 				case R.id.context_delete:
-
-						try {
-							MainActivity myActivity = (MainActivity) getActivity();
-							myActivity.deleteDropboxNote(mSelectedIds);
-						} catch (DbxException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+					MainActivity myActivity = (MainActivity) getActivity();
+					myActivity.deleteDropboxNote(mSelectedIds);
 
 					nr = 0;
 					mAdapter.clearSelection();

@@ -84,6 +84,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	private PlacesAutoCompleteAdapter acAdapter;
 
 	public String location;
+	public String mDatastoreId;
+	public String mDropboxId;
 	private double latitude = 0;
 	private double longitude = 0;
 	private int tempPosition = 0;
@@ -752,6 +754,8 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 			longitude = note.getDouble(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_LNG));
 			latitude = note.getDouble(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_LAT));
 			checkString = note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_CHECK));
+			mDropboxId = note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_DROPBOX));
+			mDatastoreId = note.getString(note.getColumnIndexOrThrow(NotesDbAdapter.KEY_DATASTORE));
 			mChecklist = Boolean.parseBoolean(checkString);
 		} else {
 			autoCompView.requestFocus();
@@ -800,7 +804,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		String title = mTitleText.getText().toString();
 		String body = mBodyText.getText().toString();
 		if (title.isEmpty()) {
-			title = body.substring(0, Math.min(body.length(), 7));
+			title = body.substring(0, Math.min(body.length(), 10));
 		}
 		
 		String listString = String.valueOf(mChecklist);

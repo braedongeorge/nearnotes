@@ -1,23 +1,41 @@
 package com.nearnotes;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.LabeledIntent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.text.Html;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dropbox.sync.android.DbxAccount;
 import com.dropbox.sync.android.DbxDatastore;
+import com.dropbox.sync.android.DbxDatastore.Role;
 import com.dropbox.sync.android.DbxException;
 import com.dropbox.sync.android.DbxPrincipal;
+import com.nearnotes.OverflowDialog.OverflowDialogListener;
 
 // This is the sharing dialog, which allows users to change permissions and send links to other users.
 public class ShareDialog extends DialogFragment {
@@ -25,134 +43,183 @@ public class ShareDialog extends DialogFragment {
 	private View v;
 	DbxDatastore.SyncStatusListener listener;
 	private DbxAccount mAccount;
+	private boolean mIsManaged;
+	ShareDialogListener mListener;
 
-	public ShareDialog(DbxDatastore datastore, DbxAccount account) {
+	public ShareDialog(DbxDatastore datastore, DbxAccount account, boolean isManaged) {
 		super();
 		this.datastore = datastore;
 		mAccount = account;
+		mIsManaged = isManaged;
+		if (!isManaged) {
+			if (datastore.isWritable()) {
+				datastore.setRole(DbxPrincipal.PUBLIC, Role.EDITOR);
+				try {
+					datastore.sync();
+				} catch (DbxException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	
+	public interface ShareDialogListener {
+		public void onUnshareSelected(DbxDatastore store);
+		
 	}
 
-	// This is used in conjunction with the spinners to figure out what role was selected.
-	private DbxDatastore.Role mapIndexToRole(int index) {
-		switch (index) {
-		case 1:
-			return DbxDatastore.Role.VIEWER;
-		case 2:
-			return DbxDatastore.Role.EDITOR;
-		default:
-			return DbxDatastore.Role.NONE;
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		// Verify that the host activity implements the callback interface
+		try {
+			mListener = (ShareDialogListener) activity; 	// Instantiate the NoticeDialogListener so we can send events to the host
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString() + " must implement ShareDialogListener");  // The activity doesn't implement the interface, throw exception
 		}
 	}
 
-	// This is used in conjunction with the spinners to figure out what position to put
-	// the spinner in based on the current role.
-	private int mapRoleToIndex(DbxDatastore.Role role) {
-		switch (role) {
-		case VIEWER:
-			return 1;
-		case EDITOR:
-			return 2;
-		default:
-			return 0;
-		}
-	}
-
-	// Update the UI based on the current permissions.
-	private void updateState() {
-		Spinner publicRoleSpinner = (Spinner) v.findViewById(R.id.publicRoleSpinner);
-		Spinner teamRoleSpinner = (Spinner) v.findViewById(R.id.teamRoleSpinner);
-
-		publicRoleSpinner.setSelection(mapRoleToIndex(datastore.getRole(DbxPrincipal.PUBLIC)));
-		teamRoleSpinner.setSelection(mapRoleToIndex(datastore.getRole(DbxPrincipal.TEAM)));
-
-		// Only enable spinners if the datastore is writable.
-		publicRoleSpinner.setEnabled(datastore.isWritable());
-		teamRoleSpinner.setEnabled(datastore.isWritable());
-
-		String team = mAccount.getAccountInfo().orgName;
-
-		// Make the team spinner visible only if the user is on a Dropbox for Business team.
-		v.findViewById(R.id.teamRoleRow).setVisibility(team.isEmpty() ? View.INVISIBLE : View.VISIBLE);
-
-		if (!team.isEmpty()) {
-			// Put the team name in the label.
-			TextView teamRoleLabel = (TextView) v.findViewById(R.id.teamRoleLabel);
-			teamRoleLabel.setText("Team (" + team + ") role");
-		}
-	}
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		LayoutInflater inflater = getActivity().getLayoutInflater();
 		v = inflater.inflate(R.layout.sharing, null);
 
-		Spinner publicRoleSpinner = (Spinner) v.findViewById(R.id.publicRoleSpinner);
-		Spinner teamRoleSpinner = (Spinner) v.findViewById(R.id.teamRoleSpinner);
+		TextView text = (TextView) v.findViewById(R.id.note_url);
+		text.setText("https://www.nearnotes.com/#" + datastore.getId());
+		text.setTextIsSelectable(true);
 
-		class RoleUpdater implements AdapterView.OnItemSelectedListener {
-			DbxDatastore datastore;
-			DbxPrincipal principal;
+		String team = mAccount.getAccountInfo().orgName;
+		v.findViewById(R.id.teamRoleRow).setVisibility(team.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+		CheckBox box = (CheckBox) v.findViewById(R.id.checkbox_team);
+		box.setText(team.isEmpty() ? "" : "Restrict to my team (" + team + ")");
+		box.setOnClickListener(new View.OnClickListener() {
 
-			public RoleUpdater(DbxDatastore datastore, DbxPrincipal principal) {
-				this.datastore = datastore;
-				this.principal = principal;
-			}
+			@Override
+			public void onClick(View v) {
 
-			private void updateRole(DbxDatastore.Role role) {
-				if (datastore.isWritable()) {
-					datastore.setRole(principal, role);
+				boolean checked = ((CheckBox) v).isChecked();
+				if (checked) {
+					datastore.setRole(DbxPrincipal.TEAM, Role.EDITOR);
+					datastore.setRole(DbxPrincipal.PUBLIC, Role.NONE);
 					try {
 						datastore.sync();
-						updateState();
 					} catch (DbxException e) {
+						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
+				else {
+					datastore.setRole(DbxPrincipal.PUBLIC, Role.EDITOR);
+					try {
+						datastore.sync();
+					} catch (DbxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
 			}
 
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				updateRole(mapIndexToRole(position));
+		});
+		
+		if (mIsManaged && !team.isEmpty()) {
+			if (datastore.getRole(DbxPrincipal.TEAM).equals(Role.EDITOR)) {
+				box.setChecked(true);
+			} else {
+				box.setChecked(false);
 			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-				updateRole(DbxDatastore.Role.NONE);
-			}
+			
+			
 		}
-
-		// When the spinner is changed, update the role to match.
-		publicRoleSpinner.setOnItemSelectedListener(new RoleUpdater(datastore, DbxPrincipal.PUBLIC));
-		teamRoleSpinner.setOnItemSelectedListener(new RoleUpdater(datastore, DbxPrincipal.TEAM));
-
-		// Send email with a link.
-		((Button) v.findViewById(R.id.emailButton)).setOnClickListener(new View.OnClickListener() {
+		
+		
+		if (mIsManaged) {
+			
+			Button unShareBtn = (Button) v.findViewById(R.id.unShareButton);
+			unShareBtn.setVisibility(View.VISIBLE);
+			unShareBtn.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					datastore.removeSyncStatusListener(listener);
+					mListener.onUnshareSelected(datastore);
+					dismiss();
+				}
+			});
+		}
+		
+		
+		
+		// Send a text message with a link.
+		((Button) v.findViewById(R.id.shareButton)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent i = new Intent(Intent.ACTION_SEND);
-				i.setType("message/rfc822");
-				i.putExtra(Intent.EXTRA_SUBJECT, "I want to share a list with you.");
-				i.putExtra(Intent.EXTRA_TEXT, "Here's the link: https://www.nearnotes.com/#" + datastore.getId());
+
+				Intent emailIntent = new Intent();
+				emailIntent.setAction(Intent.ACTION_SEND);
+				// Native email client doesn't currently support HTML, but it doesn't hurt to try in case they fix it
+				emailIntent.putExtra(Intent.EXTRA_TEXT, Html.fromHtml("Here's the link: <a href=\"https://www.nearnotes.com/#" + datastore.getId() + "\">https://www.nearnotes.com/#" + datastore.getId() + "</a>"));
+				emailIntent.putExtra(Intent.EXTRA_SUBJECT, "I want to share a note with you.");
+				emailIntent.setType("message/rfc822");
+
+				PackageManager pm = getActivity().getPackageManager();
+				Intent sendIntent = new Intent(Intent.ACTION_SEND);
+				sendIntent.setType("text/plain");
+
+				Intent openInChooser = Intent.createChooser(emailIntent, "Share note using...");
+
+				List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
+				List<LabeledIntent> intentList = new ArrayList<LabeledIntent>();
+				for (int i = 0; i < resInfo.size(); i++) {
+					// Extract the label, append it, and repackage it in a LabeledIntent
+					ResolveInfo ri = resInfo.get(i);
+					String packageName = ri.activityInfo.packageName;
+					if (packageName.contains("android.email")) {
+						emailIntent.setPackage(packageName);
+					} else if (packageName.contains("twitter") || packageName.contains("facebook") || packageName.contains("mms") || packageName.contains("android.gm") || packageName.contains("whatsapp") || packageName.contains("skype")) {
+						Intent intent = new Intent();
+						intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
+						intent.setAction(Intent.ACTION_SEND);
+						intent.setType("text/plain");
+
+						if (packageName.contains("android.gm")) {
+							intent.putExtra(Intent.EXTRA_TEXT, "I want to share a NearNote: https://www.nearnotes.com/#" + datastore.getId());
+							intent.putExtra(Intent.EXTRA_SUBJECT, "I want to share a note with you.");
+							intent.setType("message/rfc822");
+						} else {
+							intent.putExtra(Intent.EXTRA_TEXT, "Here's the link: https://www.nearnotes.com/#" + datastore.getId());
+						}
+
+						intentList.add(new LabeledIntent(intent, packageName, ri.loadLabel(pm), ri.icon));
+					}
+				}
+
+				// convert intentList to array
+				LabeledIntent[] extraIntents = intentList.toArray(new LabeledIntent[intentList.size()]);
+
+				openInChooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
+
+				
+				
 				try {
-					startActivity(Intent.createChooser(i, "Send mail..."));
+					startActivity(openInChooser);
 				} catch (ActivityNotFoundException e) {
 					Toast.makeText(getActivity(), "There are no email clients installed.", Toast.LENGTH_SHORT).show();
 				}
+
 			}
 		});
+		
 
-		// Send a text message with a link.
-		((Button) v.findViewById(R.id.smsButton)).setOnClickListener(new View.OnClickListener() {
+		((Button) v.findViewById(R.id.copyButton)).setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent i = new Intent(Intent.ACTION_VIEW);
-				i.setType("vnd.android-dir/mms-sms");
-				i.putExtra("sms_body", "I want to share a list with you: https://www.nearnotes.com/#" + datastore.getId());
-				try {
-					startActivity(Intent.createChooser(i, "Send SMS..."));
-				} catch (ActivityNotFoundException e) {
-					Toast.makeText(getActivity(), "There are no SMS clients installed.", Toast.LENGTH_SHORT).show();
-				}
+				ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+				ClipData clip = ClipData.newPlainText("NearNotes", "https://www.nearnotes.com/#" + datastore.getId());
+				clipboard.setPrimaryClip(clip);
+				Toast.makeText(getActivity(), "Copied link to clipboard.", Toast.LENGTH_SHORT).show();
 			}
 		});
 
@@ -165,14 +232,12 @@ public class ShareDialog extends DialogFragment {
 				} catch (DbxException e) {
 					e.printStackTrace();
 				}
-				updateState();
 			}
 		};
 		datastore.addSyncStatusListener(listener);
-		updateState();
 
-		return new AlertDialog.Builder(getActivity())
-				.setTitle("Share")
+		return new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.CustomActionBarTheme))
+				.setTitle(mIsManaged ? "Manage Shared Note" : "Share Note")
 				.setView(v)
 				.create();
 	}
@@ -181,5 +246,11 @@ public class ShareDialog extends DialogFragment {
 	public void onDestroyView() {
 		super.onDestroyView();
 		datastore.removeSyncStatusListener(listener);
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		dismiss();
 	}
 }

@@ -16,13 +16,19 @@
 
 package com.nearnotes;
 
+import com.dropbox.sync.android.DbxDatastoreManager;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 	public class SelectionAdapter extends SimpleCursorAdapter {
 
@@ -63,4 +69,29 @@ import android.widget.SimpleCursorAdapter;
 			}
 			return v;
 		}
+		
+		 @Override
+         public void bindView(View view, Context context, Cursor cursor) {
+             super.bindView(view, context, cursor);
+             TextView textView = (TextView) view.findViewById(R.id.text1);
+             ImageView imageView = (ImageView) view.findViewById(R.id.listicon);
+             
+             int datastoreid_index = cursor.getColumnIndexOrThrow("datastoreid");
+             String dataString = cursor.getString(datastoreid_index);
+             Log.e("\"" + cursor.getString(datastoreid_index) + "\"","index" + String.valueOf(cursor.getString(datastoreid_index)).length());
+             if (dataString.startsWith(".")) {
+            	 textView.setTextColor(Color.parseColor("#078500"));
+            	 imageView.setVisibility(View.VISIBLE);
+            	
+             } else {
+            	 textView.setTextColor(Color.BLACK);
+            	 imageView.setVisibility(View.GONE);
+             }
+         
+       
+
+         }
+		
+		
+		
 	}
