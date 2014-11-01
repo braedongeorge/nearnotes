@@ -88,11 +88,13 @@ public class NotesDbAdapter {
 					+ newVersion + ", which will destroy all old data");
 			if (oldVersion <= 3) {
 				db.execSQL("ALTER TABLE notes ADD COLUMN checklist text DEFAULT 'false'");
-			} else if (oldVersion == 4) {
+			} 
+			if (oldVersion <= 4) {
 				db.execSQL("ALTER TABLE notes ADD COLUMN dropboxid text DEFAULT ''");
-			} else if (oldVersion == 5) {
+			} 
+			if (oldVersion <= 5) {
 				db.execSQL("ALTER TABLE notes ADD COLUMN datastoreid text DEFAULT 'default'");
-			}
+			} 
 		}
 	}
 
@@ -191,7 +193,7 @@ public class NotesDbAdapter {
 		String fudge = String.valueOf(Math.pow(
 				Math.cos(Math.toRadians(latitude)), 2));
 		return mDb.query(DATABASE_TABLE, new String[] { KEY_ROWID, KEY_TITLE,
-				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, null, null, null,
+				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE}, null, null, null,
 				null, "(" + mlatitude + " - latitude) * (" + mlatitude
 						+ " - latitude) + (" + mlongitude + " - longitude) * ("
 						+ mlongitude + " - longitude) * " + fudge);
@@ -269,6 +271,7 @@ public class NotesDbAdapter {
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}
+	
 
 	public boolean updateDatastoreid(long rowId, String datastoreid) {
 		ContentValues args = new ContentValues();
@@ -316,6 +319,7 @@ public class NotesDbAdapter {
 				KEY_BODY, KEY_LAT, KEY_LNG, KEY_LOCATION, KEY_CHECK, KEY_DROPBOX, KEY_DATASTORE }, KEY_DROPBOX + "="
 				+ "'" + id + "'", null, null, null, null, null);
 	}
+	
 
 	public void removeSetting() {
 		Cursor mCursor = mDb.query(true, DATABASE_TABLE_SETTINGS, new String[] {

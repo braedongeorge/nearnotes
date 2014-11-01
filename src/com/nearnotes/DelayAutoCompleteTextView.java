@@ -67,7 +67,7 @@ public class DelayAutoCompleteTextView extends AutoCompleteTextView {
 
 		mHandler.removeMessages(0);
 		mHandler.sendMessageDelayed(
-				mHandler.obtainMessage(0, keyCode, 0, text), 750);
+				mHandler.obtainMessage(0, keyCode, 0, text), 550);
 	}
 
 	@Override

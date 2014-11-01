@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFB2"
+    android:padding="7dp" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+		<!-- ADDING NOTES -->
+        <TextView
+            android:id="@+id/help_adding_note_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:drawableLeft="@drawable/ic_action_expand"
+            android:gravity="center_vertical"
+            android:includeFontPadding="false"
+            android:onClick="toggle_contents"
+            android:paddingTop="10dp"
+            android:text="@string/help_adding_note_title"
+            android:textSize="15sp" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#000000"
+            android:paddingBottom="10dp" />
+
+        <LinearLayout
+            android:id="@+id/help_add_note_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:visibility="gone" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/help_images"
+                android:scaleType="centerInside"
+                android:src="@drawable/help_add_note_1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="To add a note, tap the plus icon on the All Notes screen. "
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/help_images"
+                android:scaleType="center"
+                android:src="@drawable/help_add_note_2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="Then enter a location and select from the dropdown box."
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/help_images"
+                android:scaleType="center"
+                android:src="@drawable/help_add_note_3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="Enter the body and title and then tap the tick icon"
+                android:textSize="13sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+        <!-- DELETING NOTES -->
+        <TextView
+             android:id="@+id/help_deleting_note_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_expand"
+            android:gravity="center_vertical"
+            android:includeFontPadding="false"
+            android:paddingTop="10dp"
+            android:onClick="toggle_contents_delete"
+            android:clickable="true"
+            android:text="@string/help_deleting_note_title"
+            android:textSize="15sp" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#000000" />
+
+        <LinearLayout
+            android:id="@+id/help_delete_note_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:gravity="center"
+            android:visibility="gone" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/help_images"
+                android:scaleType="centerInside"
+                android:src="@drawable/help_delete_note_1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="To delete a note, tap the menu icon in the top right then tap delete note then OK. "
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/help_images"
+                android:scaleType="center"
+                android:src="@drawable/help_delete_note_2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="To do multiple deletions go to the All Notes screen and long press on a note. This will bring up the deletion action bar, tap on all the notes you would like to delete then tap the trash icon at the top right."
+                android:textSize="13sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+        <!-- SYNCING NOTES -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_expand"
+            android:gravity="center_vertical"
+            android:includeFontPadding="false"
+            android:paddingTop="10dp"
+            android:clickable="true"
+            android:onClick="toggle_contents_sync"
+            android:id="@+id/help_sync_notes_title"
+            android:text="@string/help_sync_notes_title"
+            android:textSize="15sp" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#000000" />
+
+        <LinearLayout
+            android:id="@+id/help_sync_notes_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:gravity="center"
+            android:visibility="gone" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/help_images"
+                android:scaleType="centerInside"
+                android:src="@drawable/help_sync_note_1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="To Sync and backup your notes using dropbox tap Sync Dropbox in the slide menu. "
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/help_images"
+                android:scaleType="center"
+                android:src="@drawable/help_sync_note_2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="Login and tap allow and you will be returned to the All Notes screen with your synced notes."
+                android:textSize="13sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+
+        <!-- SHARING NOTES -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_action_expand"
+            android:gravity="center_vertical"
+            android:includeFontPadding="false"
+            android:paddingTop="10dp"
+            android:clickable="true"
+            android:onClick="toggle_contents_share"
+            android:id="@+id/help_share_notes_title"
+            android:text="@string/help_share_notes_title"
+            android:textColor="#000"
+            android:textSize="15sp" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dip"
+            android:background="#000000" />
+
+        <LinearLayout
+            android:id="@+id/help_share_notes_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="20dp"
+            android:visibility="gone" >
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="After setting up syncing with Dropbox you can share notes"
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/help_images"
+                android:scaleType="centerInside"
+                android:src="@drawable/help_share_note_1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="Then tap the menu button in the top right then tap Share Note."
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/help_images"
+                android:scaleType="center"
+                android:src="@drawable/help_share_note_2" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="To share to another person press share via another application."
+                android:textSize="13sp"
+                android:textStyle="italic" />
+            
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/help_images"
+                android:scaleType="centerInside"
+                android:src="@drawable/help_share_note_3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="To unshare, open the shared note and tap menu then Manage Share. "
+                android:textSize="13sp"
+                android:textStyle="italic" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/help_images"
+                android:scaleType="center"
+                android:src="@drawable/help_share_note_4" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="28dp"
+                android:text="Tap unshare to remove sharing"
+                android:textSize="13sp"
+                android:textStyle="italic" />
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

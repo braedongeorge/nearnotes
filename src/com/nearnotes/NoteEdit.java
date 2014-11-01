@@ -666,7 +666,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		HttpURLConnection conn = null;
 		StringBuilder jsonResults = new StringBuilder();
 		try {
-			StringBuilder sb = new StringBuilder("http://www.nearnotes.com/places.php");
+			StringBuilder sb = new StringBuilder("https://www.nearnotes.com/places.php");
 			sb.append("?longitude=" + String.valueOf(mLongitude));
 			sb.append("&latitude=" + String.valueOf(mLatitude));
 			sb.append("&input=" + URLEncoder.encode(input, "utf8"));
@@ -735,7 +735,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 	}
 
 	@SuppressWarnings("deprecation")
-	private void populateFields() {
+	public void populateFields() {
 
 		if (mRowId != null) {
 			int settingsResult = mDbHelper.fetchSetting();
@@ -795,9 +795,11 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				 mTitleText.setText("");
 			}
 			mRowId = extras.containsKey(NotesDbAdapter.KEY_ROWID) ? extras.getLong(NotesDbAdapter.KEY_ROWID) : null;
+		} else {
+			populateFields();
 		}
+		
 		mTblAddLayout.removeAllViews();
-		populateFields();
 	}
 
 	public boolean saveState() {
@@ -843,10 +845,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 		}
 	}
 
-	
-	
-	
-	
+
 	@Override
 	public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 		mBodyText.requestFocus();
@@ -868,7 +867,7 @@ public class NoteEdit extends Fragment implements OnItemClickListener {
 				}
 				autoCompView.setTextColor(getResources().getColor(R.color.deepgreen));
 			} else {
-				StringBuilder sb = new StringBuilder("http://www.nearnotes.com/geocode.php");
+				StringBuilder sb = new StringBuilder("https://www.nearnotes.com/geocode.php");
 				sb.append("?reference=" + String.valueOf(referenceList.get(tempPosition)));
 				new NetworkTask().execute(sb.toString());
 				

@@ -36,6 +36,8 @@ public class MyDrawerAdapter extends ArrayAdapter<String> {
 			textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_dropbox_logo, 0, 0, 0);
 		else if (s.startsWith("Settings")) 
 			textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_action_settings, 0, 0, 0);
+		else if (s.startsWith("Help")) 
+			textView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_action_help, 0, 0, 0);
 	
 		textView.setCompoundDrawablePadding(30);
 

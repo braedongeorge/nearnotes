@@ -105,6 +105,7 @@
         <item>All Notes</item>
         <item>Sync Dropbox</item>
         <item>Settings</item>
+        <item>Help</item>
     </string-array>
 
     <string name="sync_dropbox">Sync your notes with Dropbox</string>
@@ -123,5 +124,18 @@
     <!-- Location Autocomplete text color -->
     <color name="deepred">#B30000</color>
     <color name="deepgreen">#008714</color>
-
+    
+    <!-- Help Page Text -->
+    <string name="help_adding_note_title">Adding a Note</string>
+    <string name="help_adding_note_body">To add a note, tap the plus symbol on the All Notes screen. Enter a location for your note in the location field and select from the dropdown box. Enter a body and title (optional), then tap the \"tick\" icon in the top right hand corner when finished to save the note.</string>
+	
+     <string name="help_deleting_note_title">Deleting a Note</string>
+     <string name="help_deleting_note_body">To delete a note while a note is open, tap the menu icon in the top right then tap delete note then OK. To do multiple deletions go to the All Notes screen and long press on a note. This will bring up the deletion action bar, tap on all the notes you would like to delete then tap the trash icon at the top right. If you want to select all, press the select all button next to the trash icon.</string>
+    
+     <string name="help_sync_notes_title">Syncing Notes with Dropbox</string>
+     <string name="help_sync_notes_body">To Sync and backup your notes using dropbox tap Sync Dropbox in the slide menu. This will bring up a Dropbox login and you will need a dropbox account to continue. Login and tap allow and you will be returned to the All Notes screen with your synced notes. An internet connection is required for this functionality but you are able to view and edit your notes offline. Once completed you can sync your notes across multiple devices by logging in with the same Dropbox account.</string>
+         	
+     <string name="help_share_notes_title">Sharing Notes with Dropbox</string>	
+     <string name="help_share_notes_body">To share a note after setting up syncing with Dropbox open the note you want to share and tap the menu button in the top right then tap Share Note. Now anyone who has the link to that note is able to view and edit your note. To share to another person press share via another application to send via text message, skype, email etc or copy to clipboard to do it yourself. If the recipient has NearNotes they can simply open the link with NearNotes on their phone or if they don\'t they can edit and view the note in any web browser. To unshare, open the shared note and tap menu then Manage Share and tap unshare in the dialog.</string>
+    
 </resources>
